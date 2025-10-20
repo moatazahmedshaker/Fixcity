@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>نتيجة التتبع</h4>
+<div class="card p-3">
+  <p><strong>كود:</strong> {{ problem.tracking_code }}</p>
+  <p><strong>الحالة الحالية:</strong> {{ problem.status }}</p>
+  <p><strong>العنوان:</strong> {{ problem.title }}</p>
+  <p><strong>الوصف:</strong> {{ problem.description }}</p>
+  {% if problem.image_filename %}
+    <p><img src="{{ url_for('uploaded_file', filename=problem.image_filename) }}" class="img-fluid" /></p>
+  {% endif %}
+  <h6>سجل التحديثات:</h6>
+  <ul>
+    {% for u in problem.updates %}
+      <li>{{ u.updated_at.strftime('%Y-%m-%d %H:%M') }} — {{ u.old_status }} → {{ u.new_status }} {% if u.note %} ({{ u.note }}) {% endif %}</li>
+    {% else %}
+      <li>لا توجد تحديثات بعد.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

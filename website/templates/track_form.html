@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-3">
+  <h5>تتبع بلاغ</h5>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.code.label(class="form-label") }}
+      {{ form.code(class="form-control") }}
+    </div>
+    <button class="btn btn-primary" type="submit">{{ form.submit.label.text }}</button>
+  </form>
+</div>
+{% endblock %}

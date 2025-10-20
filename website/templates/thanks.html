@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="alert alert-success">
+  تم استلام البلاغ بنجاح! <br>
+  كود التتبع الخاص بك: <strong>{{ code }}</strong>
+</div>
+<a class="btn btn-outline-primary" href="{{ url_for('index') }}">رجوع للرئيسية</a>
+{% endblock %}

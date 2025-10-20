@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-4 mb-4">مرحباً بكم في منصة البلاغات الموحدة</h1>
+    <p class="lead mb-5">ساعدنا في جعل مدينتك أفضل مكان للعيش</p>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📝 الإبلاغ عن مشكلة</h5>
+                    <p class="card-text">أبلغ عن مشكلة في المرافق العامة</p>
+                    <a href="{{ url_for('report') }}" class="btn btn-primary">إبلاغ الآن</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🔍 متابعة بلاغ</h5>
+                    <p class="card-text">تابع حالة البلاغ المقدم</p>
+                    <a href="{{ url_for('track') }}" class="btn btn-success">تتبع بلاغ</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">👨‍💼 لوحة التحكم</h5>
+                    <p class="card-text">للمسؤولين عن متابعة البلاغات</p>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">الدخول</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

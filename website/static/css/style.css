@@ -1,0 +1,12 @@
+:root{
+  --egypt-red: #d71828;
+  --egypt-black: #0b0b0b;
+  --egypt-gold: #c4972f;
+  --egypt-white: #ffffff;
+}
+body{font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:var(--egypt-white);color:var(--egypt-black);}
+.navbar{border-bottom:4px solid var(--egypt-gold);}
+.navbar .btn-primary{background:var(--egypt-red);border-color:var(--egypt-red);}
+.btn-success{background:var(--egypt-gold);border-color:var(--egypt-gold);color:var(--egypt-black);}
+.footer{background:#f8f9fa;padding:12px;margin-top:24px;text-align:center;}
+.card{border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Admin - All Reports</h3>
+<table class="table table-bordered">
+<thead><tr><th>Code</th><th>Title</th><th>Category</th><th>Region</th><th>Authority</th><th>Status</th></tr></thead>
+<tbody>
+{% for p in problems %}
+<tr>
+  <td>{{ p.tracking_code }}</td>
+  <td>{{ p.title }}</td>
+  <td>{{ p.category.name if p.category }}</td>
+  <td>{{ p.location }}</td>
+  <td>{{ p.authority.name if p.authority }}</td>
+  <td>{{ p.status }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

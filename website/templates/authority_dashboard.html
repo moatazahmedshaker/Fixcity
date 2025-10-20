@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Authority Dashboard - {{ authority.name }}</h3>
+<p>Region: {{ authority.region }}</p>
+<table class="table table-striped">
+<thead><tr><th>Code</th><th>Title</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>
+{% for p in problems %}
+<tr>
+  <td>{{ p.tracking_code }}</td>
+  <td>{{ p.title }}</td>
+  <td>{{ p.category.name if p.category }}</td>
+  <td>{{ p.location }}</td>
+  <td>{{ p.status }}</td>
+  <td>
+    <form method="post" action="{{ url_for('authority_update_status', pid=p.id) }}">
+      <select name="status" class="form-select form-select-sm mb-1">
+        <option value="New" {% if p.status=='New' %}selected{% endif %}>New</option>
+        <option value="In Progress" {% if p.status=='In Progress' %}selected{% endif %}>In Progress</option>
+        <option value="Resolved" {% if p.status=='Resolved' %}selected{% endif %}>Resolved</option>
+      </select>
+      <input name="note" class="form-control form-control-sm mb-1" placeholder="Note (optional)"/>
+      <button class="btn btn-sm btn-success" type="submit">Update</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

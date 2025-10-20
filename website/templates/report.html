@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Report an Issue</h4>
+    <p class="text-muted">Select the location on the map or enter an address. Attach photos to help authorities assess the problem.</p>
+    <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      <div class="mb-3">
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control") }}
+      </div>
+      <div class="mb-3">
+        {{ form.category.label(class="form-label") }}
+        {{ form.category(class="form-select") }}
+      </div>
+      <div class="mb-3">
+        {{ form.location.label(class="form-label") }}
+        {{ form.location(class="form-control") }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Location on map</label>
+        <div id="map" style="height:300px;border:1px solid #ddd;"></div>
+        <input type="hidden" id="lat" name="latitude">
+        <input type="hidden" id="lng" name="longitude">
+        <small class="text-muted">Click the map to set the problem location. If left empty, location text will be used.</small>
+      </div>
+
+      <div class="mb-3">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", rows=4) }}
+      </div>
+      <div class="mb-3">
+        {{ form.image.label(class="form-label") }}
+        {{ form.image(class="form-control") }}
+      </div>
+      <button class="btn btn-success" type="submit">{{ form.submit.label.text }}</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  var map = L.map('map').setView([30.0444,31.2357], 7); // Egypt center
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+  }).addTo(map);
+
+  var marker;
+  function onMapClick(e) {
+    if (marker) { map.removeLayer(marker); }
+    marker = L.marker(e.latlng).addTo(map);
+    document.getElementById('lat').value = e.latlng.lat.toFixed(6);
+    document.getElementById('lng').value = e.latlng.lng.toFixed(6);
+  }
+  map.on('click', onMapClick);
+</script>
+{% endblock %}

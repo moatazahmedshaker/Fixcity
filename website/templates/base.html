@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>جمهورية مصر العربية — منصة البلاغات الموحدة | FixCity Egypt</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <div class="d-flex align-items-center">
+        <img src="{{ url_for('static', filename='egypt_emblem.png') }}" alt="Egypt" style="height:48px;margin-left:10px;">
+        <div class="ms-2">
+          <div style="font-size:14px;font-weight:700">جمهورية مصر العربية</div>
+          <div style="font-size:12px;color:#666">منصة البلاغات الموحدة للمرافق العامة</div>
+        </div>
+      </div>
+      <div>
+        <a class="btn btn-outline-primary me-2" href="{{ url_for('report') }}">أبلغ عن مشكلة</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('track') }}">تتبع بلاغ</a>
+      </div>
+    </div>
+  </nav>
+  <main class="container my-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat,msg in messages %}
+          <div class="alert alert-{{ cat }}">{% autoescape false %}{{ msg }}{% endautoescape %}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="text-center py-3">
+    <small>© 2025 – جمهورية مصر العربية، وزارة التنمية المحلية – All rights reserved.</small>
+  </footer>
+</body>
+</html>
