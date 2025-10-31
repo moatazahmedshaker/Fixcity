@@ -1,6 +1,6 @@
 // lib/admin/admin_login_page.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // NEW
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({Key? key}) : super(key: key);
@@ -12,7 +12,10 @@ class AdminLoginPage extends StatefulWidget {
 class _AdminLoginPageState extends State<AdminLoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  // NEW: Get Supabase client for authentication
+  final supabase = Supabase.instance.client;
+
   String _errorMessage = '';
   bool _isLoading = false;
 
@@ -22,17 +25,20 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       _errorMessage = '';
     });
     try {
-      await _auth.signInWithEmailAndPassword(
+      // NEW: Supabase sign in command
+      await supabase.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
       
-      // THE FIX IS HERE
+      // On successful login, navigate to the dashboard
       if (!context.mounted) return;
       Navigator.of(context).pushReplacementNamed('/admin/dashboard');
 
-    } on FirebaseAuthException {
-      _errorMessage = 'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.';
+    } on AuthException catch (e) {
+      _errorMessage = e.message.contains('Invalid login credentials')
+          ? 'بيانات دخول غير صحيحة.'
+          : 'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.';
     } catch (e) {
       _errorMessage = 'حدث خطأ غير متوقع.';
     }

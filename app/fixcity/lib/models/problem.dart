@@ -1,17 +1,16 @@
-// lib/models/problem.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Problem {
-  String? id; // The document ID from Firestore
-  String reportCode; // The human-readable code like "OGJLZ4MQNY"
+  String? id;
+  String reportCode;
   String title;
   String category;
   String description;
   String? photoUrl;
-  GeoPoint location; // Stores latitude and longitude
+  GeoPoint location; 
   String status;
   Timestamp createdAt;
-  String? userId; // To link to a user later
+  String? userId;
 
   Problem({
     this.id,
@@ -26,43 +25,26 @@ class Problem {
     this.userId,
   });
 
-  // A factory constructor to create a Problem from a Firestore document
-  factory Problem.fromJson(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  factory Problem.fromSupabase(Map<String, dynamic> data) {
     return Problem(
-      id: doc.id,
+      id: data['id']?.toString(), 
       reportCode: data['report_code'] ?? '',
       title: data['title'] ?? '',
       category: data['category'] ?? '',
       description: data['description'] ?? '',
       photoUrl: data['photo_url'],
-      location: data['location'] ?? GeoPoint(0, 0),
+      location: GeoPoint(data['latitude'] ?? 0.0, data['longitude'] ?? 0.0), 
       status: data['status'] ?? 'جديد',
-      createdAt: data['created_at'] ?? Timestamp.now(),
-      userId: data['user_id'],
+      createdAt: Timestamp.fromDate(DateTime.parse(data['created_at'])), 
+      userId: data['user_id']?.toString(),
     );
-  }
-
-  // A method to convert a Problem object to a Map for Firestore
-  Map<String, dynamic> toJson() {
-    return {
-      'report_code': reportCode,
-      'title': title,
-      'category': category,
-      'description': description,
-      'photo_url': photoUrl,
-      'location': location,
-      'status': status,
-      'created_at': createdAt,
-      'user_id': userId,
-    };
   }
 }
 
 class StatusUpdate {
   String text;
-  Timestamp updatedAt;
-  String? updatedBy; // Who made the update (e.g., "admin")
+  DateTime updatedAt;
+  String? updatedBy; 
 
   StatusUpdate({
     required this.text,
@@ -70,20 +52,18 @@ class StatusUpdate {
     this.updatedBy,
   });
 
-  // Factory constructor from Firestore
-  factory StatusUpdate.fromJson(Map<String, dynamic> data) {
+  factory StatusUpdate.fromSupabase(Map<String, dynamic> data) {
     return StatusUpdate(
       text: data['text'] ?? '',
-      updatedAt: data['updated_at'] ?? Timestamp.now(),
+      updatedAt: DateTime.parse(data['updated_at']), 
       updatedBy: data['updated_by'],
     );
   }
 
-  // Method to convert to Map
   Map<String, dynamic> toJson() {
     return {
       'text': text,
-      'updated_at': updatedAt,
+      'updated_at': updatedAt.toIso8601String(),
       'updated_by': updatedBy,
     };
   }

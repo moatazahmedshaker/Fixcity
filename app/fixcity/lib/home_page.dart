@@ -2,18 +2,18 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('منصة البلاغات الموحدة'),
+        title: const Text('منصة البلاغات الموحدة'),
         actions: [
           // This button is a "secret" way to get to your admin panel
           // You can also just type /admin in the URL bar on web
           TextButton(
-            child: Text('Admin', style: TextStyle(color: Colors.white)),
+            child: const Text('Admin', style: TextStyle(color: Colors.white)),
             onPressed: () {
               Navigator.of(context).pushNamed('/admin');
             },
@@ -37,7 +37,7 @@ class HomePage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              SizedBox(height: 48),
+              const SizedBox(height: 48),
               _buildHomeCard(
                 context,
                 icon: Icons.report_problem,
@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
                 subtitle: 'أبلغ عن مشكلة في المرافق العامة',
                 routeName: '/report',
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildHomeCard(
                 context,
                 icon: Icons.search,
@@ -78,7 +78,7 @@ class HomePage extends StatelessWidget {
           child: Row(
             children: [
               Icon(icon, size: 40.0, color: Theme.of(context).primaryColor),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +90,7 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios),
+              const Icon(Icons.arrow_forward_ios),
             ],
           ),
         ),

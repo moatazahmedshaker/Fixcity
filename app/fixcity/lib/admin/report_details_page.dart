@@ -1,9 +1,8 @@
-// lib/admin/report_details_page.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/problem.dart'; // Reuse the models
+import '../models/problem.dart';
 
 class ReportDetailsPage extends StatefulWidget {
   final String reportId;
@@ -14,22 +13,12 @@ class ReportDetailsPage extends StatefulWidget {
 }
 
 class _ReportDetailsPageState extends State<ReportDetailsPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final supabase = Supabase.instance.client;
   final _updateController = TextEditingController();
   
   final List<String> _statuses = ['جديد', 'قيد المراجعة', 'قيد التنفيذ', 'تم الحل'];
   String? _selectedStatus;
   bool _isLoading = false;
-
-  late DocumentReference _reportRef;
-  late CollectionReference _updatesRef;
-
-  @override
-  void initState() {
-    super.initState();
-    _reportRef = _firestore.collection('reports').doc(widget.reportId);
-    _updatesRef = _reportRef.collection('updates');
-  }
 
   Future<void> _addStatusUpdate() async {
     if (_updateController.text.isEmpty || _selectedStatus == null) {
@@ -43,19 +32,17 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
     setState(() { _isLoading = true; });
 
     try {
-      StatusUpdate newUpdate = StatusUpdate(
-        text: _updateController.text,
-        updatedAt: Timestamp.now(),
-        updatedBy: 'admin', 
-      );
-
-      await _updatesRef.add(newUpdate.toJson());
-
-      await _reportRef.update({
-        'status': _selectedStatus,
+      await supabase.from('status_updates').insert({
+        'report_id': int.tryParse(widget.reportId) ?? widget.reportId,
+        'text': _updateController.text,
+        'updated_at': DateTime.now().toIso8601String(),
+        'updated_by': 'admin', 
       });
 
-      // THE FIX IS HERE
+      await supabase.from('reports').update({
+        'status': _selectedStatus,
+      }).eq('id', widget.reportId); 
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تحديث الحالة بنجاح')),
@@ -63,10 +50,9 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
       _updateController.clear();
       
     } catch (e) {
-      // THE FIX IS HERE
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل التحديث: $e')),
+        SnackBar(content: Text('فشل التحديث: ${e.toString()}')),
       );
     } finally {
       setState(() { _isLoading = false; });
@@ -79,17 +65,23 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
       appBar: AppBar(
         title: const Text('تفاصيل البلاغ'),
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: _reportRef.get(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: supabase
+            .from('reports')
+            .select() 
+            .eq('id', widget.reportId) 
+            .single() 
+            .then((data) => [data]), 
+            
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('لم يتم العثور على البلاغ.'));
           }
-
-          final problem = Problem.fromJson(snapshot.data!);
+          
+          final problem = Problem.fromSupabase(snapshot.data!.first);
           _selectedStatus ??= problem.status; 
 
           return Row(
@@ -187,21 +179,29 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                       const SizedBox(height: 24),
                       Text('سجل التحديثات', style: Theme.of(context).textTheme.titleLarge),
                       Expanded(
-                        child: StreamBuilder<QuerySnapshot>(
-                          stream: _updatesRef.orderBy('updated_at', descending: true).snapshots(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                            if (snapshot.data!.docs.isEmpty) return const Text('لا توجد تحديثات بعد.');
+                        child: StreamBuilder<List<Map<String, dynamic>>>(
+                          stream: supabase
+                            .from('status_updates')
+                            .stream(primaryKey: ['id']) 
+                            .eq('report_id', widget.reportId) 
+                            .order('updated_at', ascending: false),
+                            
+                          builder: (context, updatesSnapshot) {
+                            if (!updatesSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+                            final updates = updatesSnapshot.data!;
+
+                            if (updates.isEmpty) return const Text('لا توجد تحديثات بعد.');
 
                             return ListView.builder(
-                              itemCount: snapshot.data!.docs.length,
+                              itemCount: updates.length,
                               itemBuilder: (context, index) {
-                                final update = StatusUpdate.fromJson(snapshot.data!.docs[index].data() as Map<String, dynamic>);
-                                final date = update.updatedAt.toDate();
+                                final update = updates[index];
+                                final date = DateTime.parse(update['updated_at']);
                                 final formattedDate = '${date.year}/${date.month}/${date.day}';
+                                
                                 return Card(
                                   child: ListTile(
-                                    title: Text(update.text),
+                                    title: Text(update['text']),
                                     subtitle: Text('بتاريخ: $formattedDate'),
                                   ),
                                 );

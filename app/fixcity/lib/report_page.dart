@@ -1,15 +1,12 @@
-// lib/report_page.dart
-import 'dart:typed_data'; // We use this instead of dart:io
-import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:random_string/random_string.dart'; 
-import 'models/problem.dart'; 
+import 'package:flutter/foundation.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({Key? key}) : super(key: key);
@@ -19,6 +16,8 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
+  final supabase = Supabase.instance.client;
+  
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -32,11 +31,10 @@ class _ReportPageState extends State<ReportPage> {
   ];
   String? _selectedCategory;
 
-  // We change from File to Uint8List to support web
   Uint8List? _selectedImageData;
-  XFile? _selectedImageFile; // To hold the file details
+  XFile? _selectedImageFile; 
 
-  LatLng _selectedLocation = const LatLng(30.0444, 31.2357); // Default: Cairo
+  LatLng _selectedLocation = const LatLng(30.0444, 31.2357);
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
@@ -44,8 +42,8 @@ class _ReportPageState extends State<ReportPage> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      _selectedImageFile = pickedFile; // Store the file
-      _selectedImageData = await pickedFile.readAsBytes(); // Read its data
+      _selectedImageFile = pickedFile; 
+      _selectedImageData = await pickedFile.readAsBytes(); 
       setState(() {});
     }
   }
@@ -95,39 +93,40 @@ class _ReportPageState extends State<ReportPage> {
     });
 
     try {
-      String fileName =
-          '${DateTime.now().millisecondsSinceEpoch}-${_selectedImageFile!.name}';
-      Reference storageRef =
-          FirebaseStorage.instance.ref().child('reports/$fileName');
-      
-      // We use putData instead of putFile
-      UploadTask uploadTask = storageRef.putData(_selectedImageData!);
-      TaskSnapshot snapshot = await uploadTask;
-      String photoUrl = await snapshot.ref.getDownloadURL();
-
       String reportCode = randomAlphaNumeric(10).toUpperCase();
-
-      Problem newProblem = Problem(
-        reportCode: reportCode,
-        title: _titleController.text,
-        category: _selectedCategory!,
-        description: _descriptionController.text,
-        photoUrl: photoUrl,
-        location: GeoPoint(_selectedLocation.latitude, _selectedLocation.longitude),
-        status: 'جديد', 
-        createdAt: Timestamp.now(),
+      String fileName =
+          'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      
+      await supabase.storage.from('reports_bucket').uploadBinary(
+        fileName,
+        _selectedImageData!,
+        fileOptions: const FileOptions(
+          upsert: true,
+          contentType: 'image/jpeg',
+        ),
       );
 
-      await FirebaseFirestore.instance
-          .collection('reports')
-          .add(newProblem.toJson());
+      final publicUrlResponse = supabase.storage.from('reports_bucket').getPublicUrl(fileName);
+      String photoUrl = publicUrlResponse; 
+      await supabase.from('reports').insert({
+        'report_code': reportCode,
+        'title': _titleController.text,
+        'category': _selectedCategory!,
+        'description': _descriptionController.text,
+        'photo_url': photoUrl,
+        'latitude': _selectedLocation.latitude, 
+        'longitude': _selectedLocation.longitude,
+        'status': 'جديد',
+        'created_at': DateTime.now().toIso8601String(),
+      });
 
       if (!context.mounted) return;
       Navigator.of(context).pop(); 
+      
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('تم إرسال البلاغ بنjاح'),
+          title: const Text('تم إرسال البلاغ بنجاح'),
           content: Text('كود متابعة البلاغ الخاص بك هو: $reportCode'),
           actions: [
             TextButton(
@@ -155,23 +154,21 @@ class _ReportPageState extends State<ReportPage> {
     _getCurrentLocation(); 
   }
 
-  // Helper widget to display the image
   Widget _buildSelectedImage() {
     if (_selectedImageData != null) {
       return Container(
         padding: const EdgeInsets.only(top: 10),
         height: 150,
-        child: Image.memory(_selectedImageData!), // Use Image.memory
+        child: Image.memory(_selectedImageData!), 
       );
     } else if (_selectedImageFile != null && kIsWeb) {
-      // On web, we can display using the blob URL
       return Container(
         padding: const EdgeInsets.only(top: 10),
         height: 150,
         child: Image.network(_selectedImageFile!.path),
       );
     } else {
-      return Container(); // No image selected
+      return Container(); 
     }
   }
 
@@ -281,7 +278,7 @@ class _ReportPageState extends State<ReportPage> {
                             const Icon(Icons.check, color: Colors.green)
                         ],
                       ),
-                      _buildSelectedImage(), // Use the new helper widget
+                      _buildSelectedImage(),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,

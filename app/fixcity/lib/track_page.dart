@@ -1,18 +1,18 @@
-// lib/track_page.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/problem.dart'; 
 
 class TrackPage extends StatefulWidget {
-  const TrackPage({Key? key}) : super(key: key);
+  const TrackPage({super.key});
 
   @override
-  _TrackPageState createState() => _TrackPageState();
+  TrackPageState createState() => TrackPageState();
 }
 
-class _TrackPageState extends State<TrackPage> {
+class TrackPageState extends State<TrackPage> {
+  final supabase = Supabase.instance.client;
+  
   final _codeController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Problem? _foundProblem;
   List<StatusUpdate> _updates = [];
@@ -34,34 +34,31 @@ class _TrackPageState extends State<TrackPage> {
     String code = _codeController.text.trim().toUpperCase();
 
     try {
-      var query = await _firestore
-          .collection('reports')
-          .where('report_code', isEqualTo: code)
+      final reportResponse = await supabase
+          .from('reports')
+          .select()
+          .eq('report_code', code as String) 
           .limit(1)
-          .get();
+          .single();
 
-      if (query.docs.isEmpty) {
-        setState(() {
-          _errorMessage = 'لم يتم العثور على بلاغ بهذا الكود';
-        });
-      } else {
-        DocumentSnapshot problemDoc = query.docs.first;
-        _foundProblem = Problem.fromJson(problemDoc);
+      _foundProblem = Problem.fromSupabase(reportResponse);
 
-        var updatesQuery = await problemDoc.reference
-            .collection('updates')
-            .orderBy('updated_at', descending: true)
-            .get();
+      final updatesResponse = await supabase
+          .from('status_updates')
+          .select()
+          // FIX IS HERE: Asserting the ID is non-null
+          .eq('report_id', _foundProblem!.id!) 
+          .order('updated_at', ascending: false);
 
-        if (updatesQuery.docs.isNotEmpty) {
-          _updates = updatesQuery.docs
-              .map((doc) =>
-                  StatusUpdate.fromJson(doc.data() as Map<String, dynamic>))
-              .toList();
-        }
+      if (updatesResponse.isNotEmpty) {
+        _updates = updatesResponse
+            .map((data) => StatusUpdate.fromSupabase(data))
+            .toList();
       }
+    } on PostgrestException {
+        _errorMessage = 'لم يتم العثور على بلاغ بهذا الكود.';
     } catch (e) {
-      _errorMessage = 'حدث خطأ أثناء البحث. حاول مرة أخرى.';
+      _errorMessage = 'حدث خطأ أثناء البحث: ${e.toString()}';
     } finally {
       setState(() {
         _isLoading = false;
@@ -94,6 +91,7 @@ class _TrackPageState extends State<TrackPage> {
                 ),
               ),
               const SizedBox(height: 24),
+
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (_errorMessage != null)
@@ -130,7 +128,7 @@ class _TrackPageState extends State<TrackPage> {
             const SizedBox(height: 24),
             Text('سجل التحديثات:',
                 style: Theme.of(context).textTheme.titleLarge),
-            _buildUpdatesList(), // This was the missing call
+            _buildUpdatesList(),
           ],
         ),
       ),
@@ -151,7 +149,6 @@ class _TrackPageState extends State<TrackPage> {
     );
   }
 
-  // THIS IS THE MISSING METHOD THAT YOU NEED TO ADD
   Widget _buildUpdatesList() {
     if (_updates.isEmpty) {
       return const Padding(
@@ -166,8 +163,7 @@ class _TrackPageState extends State<TrackPage> {
       itemCount: _updates.length,
       itemBuilder: (context, index) {
         final update = _updates[index];
-        final date = update.updatedAt.toDate();
-        final formattedDate = '${date.year}/${date.month}/${date.day}';
+        final formattedDate = '${update.updatedAt.year}/${update.updatedAt.month}/${update.updatedAt.day}';
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4.0),

@@ -1,8 +1,6 @@
-// lib/admin/admin_dashboard_page.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../models/problem.dart'; // We reuse our model
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/problem.dart'; 
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({Key? key}) : super(key: key);
@@ -12,41 +10,47 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final supabase = Supabase.instance.client;
 
-  void _logout() {
-    FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushReplacementNamed('/admin');
+  void _logout() async {
+    await supabase.auth.signOut();
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/admin');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('لوحة التحكم - كل البلاغات'),
+        title: const Text('لوحة التحكم - كل البلاغات'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: _logout,
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        // This Stream listens for real-time changes in the 'reports' collection
-        stream: _firestore.collection('reports').orderBy('created_at', descending: true).snapshots(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: supabase
+            .from('reports')
+            .select()
+            .order('created_at', ascending: false)
+            .limit(100) 
+            .then((data) => data.cast<Map<String, dynamic>>().toList()),
+            
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('لا توجد بلاغات حالياً.'));
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('لا توجد بلاغات حالياً.'));
           }
           if (snapshot.hasError) {
-            return Center(child: Text('حدث خطأ في تحميل البيانات.'));
+            return Center(child: Text('حدث خطأ في تحميل البيانات: ${snapshot.error}'));
           }
 
-          // We have data, let's build the table
-          final reports = snapshot.data!.docs;
+          final reports = snapshot.data!;
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -61,10 +65,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   DataColumn(label: Text('تاريخ الإنشاء')),
                   DataColumn(label: Text('تفاصيل')),
                 ],
-                rows: reports.map((doc) {
-                  // Parse the document into our Problem object
-                  final problem = Problem.fromJson(doc);
-                  final createdAt = problem.createdAt.toDate();
+                rows: reports.map((data) {
+                  final Problem problem = Problem.fromSupabase(data);
+                  final DateTime createdAt = DateTime.parse(data['created_at']); 
                   final formattedDate = '${createdAt.year}/${createdAt.month}/${createdAt.day}';
 
                   return DataRow(
@@ -76,10 +79,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       DataCell(Text(formattedDate)),
                       DataCell(
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           onPressed: () {
-                            // Navigate to the details page with the report's ID
-                            Navigator.of(context).pushNamed('/admin/report/${problem.id}');
+                            Navigator.of(context).pushNamed('/admin/report/${data['id']}');
                           },
                         ),
                       ),
