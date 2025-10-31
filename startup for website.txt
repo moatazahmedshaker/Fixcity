@@ -1,0 +1,5 @@
+cd C:\Users\hoadl\Documents\GitHub\Fixcity\website
+venv\Scripts\activate
+python app.py
+
+run on: http://localhost:5000
