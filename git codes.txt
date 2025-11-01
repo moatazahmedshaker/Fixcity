@@ -1,0 +1,8 @@
+TO PUSH AFTER ALL WORK IS DONE:
+cd C:\Users\hoadl\Documents\GitHub\Fixcity
+git add .
+git commit -m "feat: "
+git push origin main
+
+TO PULL WHEN YOU START WORKING:
+git pull origin main

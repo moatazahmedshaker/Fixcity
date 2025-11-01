@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; 
 
 import 'home_page.dart';
 import 'report_page.dart';
 import 'track_page.dart';
+import 'login_page.dart';
+import 'signup_page.dart';
 import 'admin/admin_login_page.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'admin/report_details_page.dart';
@@ -14,7 +16,6 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // NEW: Supabase Initialization
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
@@ -24,7 +25,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +44,11 @@ class MyApp extends StatelessWidget {
       
       initialRoute: '/',
       routes: {
-        // --- Mobile App Routes ---
         '/': (context) => const HomePage(),
         '/report': (context) => const ReportPage(),
         '/track': (context) => const TrackPage(),
-
-        // --- Web Admin Panel Routes ---
+        '/login': (context) => const LoginPage(),
+        '/signup': (context) => const SignupPage(),
         '/admin': (context) => const AdminLoginPage(),
         '/admin/dashboard': (context) => const AdminDashboardPage(),
       },

@@ -1,8 +1,36 @@
-// lib/home_page.dart
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _supabase = Supabase.instance.client;
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _supabase.auth.onAuthStateChange.listen((data) {
+      setState(() {
+        _user = data.session?.user;
+      });
+    });
+    _user = _supabase.auth.currentUser;
+  }
+
+  void _logout() async {
+    await _supabase.auth.signOut();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تسجيل الخروج')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,13 +38,14 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('منصة البلاغات الموحدة'),
         actions: [
-          // This button is a "secret" way to get to your admin panel
-          // You can also just type /admin in the URL bar on web
           TextButton(
-            child: const Text('Admin', style: TextStyle(color: Colors.white)),
             onPressed: () {
               Navigator.of(context).pushNamed('/admin');
             },
+            child: const Text(
+              'Admin Login', 
+              style: TextStyle(color: Colors.white)
+            ),
           )
         ],
       ),
@@ -33,11 +62,12 @@ class HomePage extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               Text(
-                'ساعدنا في حل مدينتك أفضل مكان للعيش',
+                'ساعدنا في جعل مدينتك أفضل مكان للعيش',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 48),
+              
               _buildHomeCard(
                 context,
                 icon: Icons.report_problem,
@@ -46,13 +76,41 @@ class HomePage extends StatelessWidget {
                 routeName: '/report',
               ),
               const SizedBox(height: 16),
+              
               _buildHomeCard(
                 context,
                 icon: Icons.search,
                 title: 'متابعة بلاغ',
-                subtitle: 'تابع حالة البلاغ المقدم',
+                subtitle: 'تابع حالة البلاغ المقدم بالكود',
                 routeName: '/track',
               ),
+              const SizedBox(height: 16),
+
+              if (_user == null)
+                _buildHomeCard(
+                  context,
+                  icon: Icons.login,
+                  title: 'تسجيل الدخول',
+                  subtitle: 'سجل الدخول لمتابعة بلاغاتك',
+                  routeName: '/login',
+                )
+              else
+                _buildHomeCard(
+                  context,
+                  icon: Icons.person,
+                  title: 'بلاغاتي',
+                  subtitle: 'عرض كل البلاغات التي قدمتها',
+                  routeName: '/my_reports',
+                ),
+
+              if (_user != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: TextButton(
+                    onPressed: _logout,
+                    child: const Text('تسجيل الخروج'),
+                  ),
+                ),
             ],
           ),
         ),
@@ -71,7 +129,13 @@ class HomePage extends StatelessWidget {
       elevation: 2.0,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).pushNamed(routeName);
+          if (routeName == '/my_reports') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('صفحة بلاغاتي (تحت الإنشاء)'))
+            );
+          } else {
+            Navigator.of(context).pushNamed(routeName);
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),

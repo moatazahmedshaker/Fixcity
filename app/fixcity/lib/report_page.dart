@@ -1,21 +1,23 @@
+import 'dart:typed_data'; 
+import 'package:flutter/foundation.dart'; 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:random_string/random_string.dart'; 
-import 'package:flutter/foundation.dart';
 
 class ReportPage extends StatefulWidget {
-  const ReportPage({Key? key}) : super(key: key);
+  const ReportPage({super.key});
 
   @override
-  _ReportPageState createState() => _ReportPageState();
+  ReportPageState createState() => ReportPageState();
 }
 
-class _ReportPageState extends State<ReportPage> {
+class ReportPageState extends State<ReportPage> {
   final supabase = Supabase.instance.client;
   
   final _formKey = GlobalKey<FormState>();
@@ -91,9 +93,12 @@ class _ReportPageState extends State<ReportPage> {
     setState(() {
       _isLoading = true;
     });
+    
+    final user = supabase.auth.currentUser;
 
     try {
       String reportCode = randomAlphaNumeric(10).toUpperCase();
+
       String fileName =
           'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
       
@@ -107,7 +112,8 @@ class _ReportPageState extends State<ReportPage> {
       );
 
       final publicUrlResponse = supabase.storage.from('reports_bucket').getPublicUrl(fileName);
-      String photoUrl = publicUrlResponse; 
+      String photoUrl = publicUrlResponse;
+
       await supabase.from('reports').insert({
         'report_code': reportCode,
         'title': _titleController.text,
@@ -118,9 +124,11 @@ class _ReportPageState extends State<ReportPage> {
         'longitude': _selectedLocation.longitude,
         'status': 'جديد',
         'created_at': DateTime.now().toIso8601String(),
+        'user_id': user?.id, 
       });
 
       if (!context.mounted) return;
+      
       Navigator.of(context).pop(); 
       
       showDialog(
@@ -129,6 +137,15 @@ class _ReportPageState extends State<ReportPage> {
           title: const Text('تم إرسال البلاغ بنجاح'),
           content: Text('كود متابعة البلاغ الخاص بك هو: $reportCode'),
           actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: reportCode));
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('تم نسخ الكود!'))
+                );
+              },
+              child: const Text('نسخ الكود'),
+            ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('حسناً'),
@@ -139,7 +156,7 @@ class _ReportPageState extends State<ReportPage> {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ: ${e.toString()}')),
+        SnackBar(content: Text('حدث خطأ: ${e.toString()}'))
       );
     } finally {
       setState(() {
@@ -168,7 +185,7 @@ class _ReportPageState extends State<ReportPage> {
         child: Image.network(_selectedImageFile!.path),
       );
     } else {
-      return Container(); 
+      return const SizedBox.shrink(); 
     }
   }
 
@@ -200,7 +217,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         hint: const Text('اختر الفئة'),
                         items: _categories.map((String category) {
                           return DropdownMenuItem<String>(
@@ -230,7 +247,7 @@ class _ReportPageState extends State<ReportPage> {
                       const SizedBox(height: 16),
                       Text('تحديد الموقع', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Container(
+                      SizedBox(
                         height: 300,
                         child: FlutterMap(
                           mapController: _mapController,
@@ -280,15 +297,12 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                       _buildSelectedImage(),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submitReport,
-                          child: const Text('إرسال البلاغ'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                      ElevatedButton(
+                        onPressed: _submitReport,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
                         ),
+                        child: const Text('إرسال البلاغ'),
                       ),
                     ],
                   ),
