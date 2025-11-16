@@ -6,10 +6,10 @@ import '../models/problem.dart';
 
 class ReportDetailsPage extends StatefulWidget {
   final String reportId;
-  const ReportDetailsPage({Key? key, required this.reportId}) : super(key: key);
+  const ReportDetailsPage({super.key, required this.reportId});
 
   @override
-  _ReportDetailsPageState createState() => _ReportDetailsPageState();
+  State<ReportDetailsPage> createState() => _ReportDetailsPageState();
 }
 
 class _ReportDetailsPageState extends State<ReportDetailsPage> {
@@ -19,7 +19,6 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
   final List<String> _statuses = ['جديد', 'قيد المراجعة', 'قيد التنفيذ', 'تم الحل'];
   String? _selectedStatus;
   bool _isLoading = false;
-
   Future<void> _addStatusUpdate() async {
     if (_updateController.text.isEmpty || _selectedStatus == null) {
       if (!context.mounted) return;
@@ -28,9 +27,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
       );
       return;
     }
-
     setState(() { _isLoading = true; });
-
     try {
       await supabase.from('status_updates').insert({
         'report_id': int.tryParse(widget.reportId) ?? widget.reportId,
@@ -38,19 +35,17 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
         'updated_at': DateTime.now().toIso8601String(),
         'updated_by': 'admin', 
       });
-
       await supabase.from('reports').update({
         'status': _selectedStatus,
-      }).eq('id', widget.reportId); 
-
-      if (!context.mounted) return;
+      }).eq('id', int.tryParse(widget.reportId) ?? widget.reportId);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تحديث الحالة بنجاح')),
       );
       _updateController.clear();
       
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل التحديث: ${e.toString()}')),
       );
@@ -58,7 +53,6 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
       setState(() { _isLoading = false; });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +77,6 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
           
           final problem = Problem.fromSupabase(snapshot.data!.first);
           _selectedStatus ??= problem.status; 
-
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -104,7 +97,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                         Image.network(problem.photoUrl!, height: 300),
                       const SizedBox(height: 16),
                       Text('الموقع على الخريطة', style: Theme.of(context).textTheme.titleMedium),
-                      Container(
+                      SizedBox(
                         height: 300,
                         child: FlutterMap(
                           options: MapOptions(
@@ -150,7 +143,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedStatus,
+                        initialValue: _selectedStatus,
                         items: _statuses.map((String status) {
                           return DropdownMenuItem<String>(
                             value: status,
@@ -189,9 +182,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
                           builder: (context, updatesSnapshot) {
                             if (!updatesSnapshot.hasData) return const Center(child: CircularProgressIndicator());
                             final updates = updatesSnapshot.data!;
-
                             if (updates.isEmpty) return const Text('لا توجد تحديثات بعد.');
-
                             return ListView.builder(
                               itemCount: updates.length,
                               itemBuilder: (context, index) {
@@ -220,7 +211,6 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
       ),
     );
   }
-
   Widget _buildDetailRow(String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),

@@ -37,7 +37,7 @@ class TrackPageState extends State<TrackPage> {
       final reportResponse = await supabase
           .from('reports')
           .select()
-          .eq('report_code', code as String) 
+          .eq('report_code', code) 
           .limit(1)
           .single();
 
@@ -46,7 +46,6 @@ class TrackPageState extends State<TrackPage> {
       final updatesResponse = await supabase
           .from('status_updates')
           .select()
-          // FIX IS HERE: Asserting the ID is non-null
           .eq('report_id', _foundProblem!.id!) 
           .order('updated_at', ascending: false);
 

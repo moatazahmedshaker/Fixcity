@@ -1,9 +1,7 @@
-import 'dart:typed_data'; 
 import 'package:flutter/foundation.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -24,7 +22,6 @@ class ReportPageState extends State<ReportPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _mapController = MapController();
-
   final List<String> _categories = [
     'حفرة',
     'قمامة',
@@ -83,7 +80,7 @@ class ReportPageState extends State<ReportPage> {
       return; 
     }
     if (_selectedImageData == null || _selectedImageFile == null) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('الرجاء إرفاق صورة للمشكلة')),
       );
@@ -127,10 +124,8 @@ class ReportPageState extends State<ReportPage> {
         'user_id': user?.id, 
       });
 
-      if (!context.mounted) return;
-      
+      if (!mounted) return;
       Navigator.of(context).pop(); 
-      
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -154,7 +149,7 @@ class ReportPageState extends State<ReportPage> {
         ),
       );
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('حدث خطأ: ${e.toString()}'))
       );

@@ -24,7 +24,6 @@ class Problem {
     required this.createdAt,
     this.userId,
   });
-
   factory Problem.fromSupabase(Map<String, dynamic> data) {
     return Problem(
       id: data['id']?.toString(), 
@@ -40,18 +39,15 @@ class Problem {
     );
   }
 }
-
 class StatusUpdate {
   String text;
   DateTime updatedAt;
   String? updatedBy; 
-
   StatusUpdate({
     required this.text,
     required this.updatedAt,
     this.updatedBy,
   });
-
   factory StatusUpdate.fromSupabase(Map<String, dynamic> data) {
     return StatusUpdate(
       text: data['text'] ?? '',
@@ -59,7 +55,6 @@ class StatusUpdate {
       updatedBy: data['updated_by'],
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'text': text,

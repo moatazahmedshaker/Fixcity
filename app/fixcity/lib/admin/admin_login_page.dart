@@ -1,19 +1,16 @@
-// lib/admin/admin_login_page.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // NEW
 
 class AdminLoginPage extends StatefulWidget {
-  const AdminLoginPage({Key? key}) : super(key: key);
+  const AdminLoginPage({super.key});
 
   @override
-  _AdminLoginPageState createState() => _AdminLoginPageState();
+  State<AdminLoginPage> createState() => _AdminLoginPageState();
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
-  // NEW: Get Supabase client for authentication
   final supabase = Supabase.instance.client;
 
   String _errorMessage = '';
@@ -25,16 +22,12 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       _errorMessage = '';
     });
     try {
-      // NEW: Supabase sign in command
       await supabase.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      
-      // On successful login, navigate to the dashboard
-      if (!context.mounted) return;
+      if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/admin/dashboard');
-
     } on AuthException catch (e) {
       _errorMessage = e.message.contains('Invalid login credentials')
           ? 'بيانات دخول غير صحيحة.'
@@ -46,7 +39,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       _isLoading = false;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,10 +80,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _login,
-                        child: const Text('تسجيل الدخول'),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
+                        child: const Text('تسجيل الدخول'),
                       ),
                     ),
                   if (_errorMessage.isNotEmpty)

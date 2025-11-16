@@ -7,11 +7,9 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
 class _HomePageState extends State<HomePage> {
   final _supabase = Supabase.instance.client;
   User? _user;
-
   @override
   void initState() {
     super.initState();
@@ -85,7 +83,6 @@ class _HomePageState extends State<HomePage> {
                 routeName: '/track',
               ),
               const SizedBox(height: 16),
-
               if (_user == null)
                 _buildHomeCard(
                   context,
@@ -102,7 +99,6 @@ class _HomePageState extends State<HomePage> {
                   subtitle: 'عرض كل البلاغات التي قدمتها',
                   routeName: '/my_reports',
                 ),
-
               if (_user != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),

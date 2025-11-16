@@ -3,22 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/problem.dart'; 
 
 class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({Key? key}) : super(key: key);
+  const AdminDashboardPage({super.key});
 
   @override
-  _AdminDashboardPageState createState() => _AdminDashboardPageState();
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
 }
-
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final supabase = Supabase.instance.client;
-
   void _logout() async {
     await supabase.auth.signOut();
     if (mounted) {
       Navigator.of(context).pushReplacementNamed('/admin');
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,9 +46,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           if (snapshot.hasError) {
             return Center(child: Text('حدث خطأ في تحميل البيانات: ${snapshot.error}'));
           }
-
           final reports = snapshot.data!;
-
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
@@ -69,7 +64,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   final Problem problem = Problem.fromSupabase(data);
                   final DateTime createdAt = DateTime.parse(data['created_at']); 
                   final formattedDate = '${createdAt.year}/${createdAt.month}/${createdAt.day}';
-
                   return DataRow(
                     cells: [
                       DataCell(Text(problem.reportCode)),
