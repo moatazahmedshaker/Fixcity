@@ -99,7 +99,7 @@ class ReportPageState extends State<ReportPage> {
       String fileName =
           'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
       
-      await supabase.storage.from('reports_bucket').uploadBinary(
+      await supabase.storage.from('files').uploadBinary(
         fileName,
         _selectedImageData!,
         fileOptions: const FileOptions(
@@ -108,7 +108,7 @@ class ReportPageState extends State<ReportPage> {
         ),
       );
 
-      final publicUrlResponse = supabase.storage.from('reports_bucket').getPublicUrl(fileName);
+      final publicUrlResponse = supabase.storage.from('files').getPublicUrl(fileName);
       String photoUrl = publicUrlResponse;
 
       await supabase.from('reports').insert({
