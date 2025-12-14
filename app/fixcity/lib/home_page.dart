@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'translations.dart';
+import 'main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -7,9 +9,11 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
+
 class _HomePageState extends State<HomePage> {
   final _supabase = Supabase.instance.client;
   User? _user;
+
   @override
   void initState() {
     super.initState();
@@ -25,7 +29,7 @@ class _HomePageState extends State<HomePage> {
     await _supabase.auth.signOut();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم تسجيل الخروج')),
+        SnackBar(content: Text(t('snack_logout', lang: appLocale.value.languageCode))),
       );
     }
   }
@@ -34,16 +38,33 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('منصة البلاغات الموحدة'),
+        title: Text(t('app_title', lang: appLocale.value.languageCode)),
+        centerTitle: true,
         actions: [
           TextButton(
             onPressed: () {
+              setState(() {
+                if (appLocale.value.languageCode == 'ar') {
+                  appLocale.value = const Locale('en');
+                } else {
+                  appLocale.value = const Locale('ar');
+                }
+              });
+            },
+            child: Text(
+              t('switch_lang', lang: appLocale.value.languageCode),
+              style: const TextStyle(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
               Navigator.of(context).pushNamed('/admin');
             },
-            child: const Text(
-              'Admin Login', 
-              style: TextStyle(color: Colors.white)
-            ),
+            icon: const Icon(Icons.admin_panel_settings),
+            tooltip: t('admin_tooltip', lang: appLocale.value.languageCode),
           )
         ],
       ),
@@ -55,12 +76,12 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'مرحباً بكم في منصة البلاغات الموحدة',
+                t('welcome_title', lang: appLocale.value.languageCode),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               Text(
-                'ساعدنا في جعل مدينتك أفضل مكان للعيش',
+                t('welcome_subtitle', lang: appLocale.value.languageCode),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -69,8 +90,8 @@ class _HomePageState extends State<HomePage> {
               _buildHomeCard(
                 context,
                 icon: Icons.report_problem,
-                title: 'الإبلاغ عن مشكلة',
-                subtitle: 'أبلغ عن مشكلة في المرافق العامة',
+                title: t('submit_report', lang: appLocale.value.languageCode),
+                subtitle: t('report_subtitle', lang: appLocale.value.languageCode),
                 routeName: '/report',
               ),
               const SizedBox(height: 16),
@@ -78,8 +99,8 @@ class _HomePageState extends State<HomePage> {
               _buildHomeCard(
                 context,
                 icon: Icons.search,
-                title: 'متابعة بلاغ',
-                subtitle: 'تابع حالة البلاغ المقدم بالكود',
+                title: t('track_report', lang: appLocale.value.languageCode),
+                subtitle: t('track_subtitle', lang: appLocale.value.languageCode),
                 routeName: '/track',
               ),
               const SizedBox(height: 16),
@@ -87,16 +108,16 @@ class _HomePageState extends State<HomePage> {
                 _buildHomeCard(
                   context,
                   icon: Icons.login,
-                  title: 'تسجيل الدخول',
-                  subtitle: 'سجل الدخول لمتابعة بلاغاتك',
+                  title: t('login', lang: appLocale.value.languageCode),
+                  subtitle: t('login_subtitle', lang: appLocale.value.languageCode),
                   routeName: '/login',
                 )
               else
                 _buildHomeCard(
                   context,
                   icon: Icons.person,
-                  title: 'بلاغاتي',
-                  subtitle: 'عرض كل البلاغات التي قدمتها',
+                  title: t('my_reports', lang: appLocale.value.languageCode),
+                  subtitle: t('my_reports_subtitle', lang: appLocale.value.languageCode),
                   routeName: '/my_reports',
                 ),
               if (_user != null)
@@ -104,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(top: 16.0),
                   child: TextButton(
                     onPressed: _logout,
-                    child: const Text('تسجيل الخروج'),
+                    child: Text(t('logout', lang: appLocale.value.languageCode)),
                   ),
                 ),
             ],
@@ -127,7 +148,7 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           if (routeName == '/my_reports') {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('صفحة بلاغاتي (تحت الإنشاء)'))
+              SnackBar(content: Text(t('snack_construction', lang: appLocale.value.languageCode)))
             );
           } else {
             Navigator.of(context).pushNamed(routeName);

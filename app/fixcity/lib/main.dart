@@ -13,6 +13,8 @@ import 'admin/report_details_page.dart';
 const supabaseUrl = 'https://fxpdvgyeducxtucamfdj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4cGR2Z3llZHVjeHR1Y2FtZmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5MzQ4ODUsImV4cCI6MjA3NzUxMDg4NX0.RVQHkXLg3-xYROsvc9wwJe6zqFa0EDsO1qqTL_jJPLU';
 
+final ValueNotifier<Locale> appLocale = ValueNotifier(const Locale('ar'));
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   

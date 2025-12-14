@@ -7,6 +7,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:random_string/random_string.dart'; 
+import 'translations.dart';
+import 'main.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -22,11 +24,12 @@ class ReportPageState extends State<ReportPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _mapController = MapController();
+  
   final List<String> _categories = [
-    'حفرة',
-    'قمامة',
-    'إنارة شوارع',
-    'أخرى'
+    'cat_pothole',
+    'cat_trash',
+    'cat_lighting',
+    'cat_other'
   ];
   String? _selectedCategory;
 
@@ -76,13 +79,15 @@ class ReportPageState extends State<ReportPage> {
   }
 
   Future<void> _submitReport() async {
+    final lang = appLocale.value.languageCode;
+
     if (!_formKey.currentState!.validate()) {
       return; 
     }
     if (_selectedImageData == null || _selectedImageFile == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إرفاق صورة للمشكلة')),
+        SnackBar(content: Text(t('fill_fields_error', lang: lang))),
       );
       return;
     }
@@ -119,7 +124,7 @@ class ReportPageState extends State<ReportPage> {
         'photo_url': photoUrl,
         'latitude': _selectedLocation.latitude, 
         'longitude': _selectedLocation.longitude,
-        'status': 'جديد',
+        'status': 'pending',
         'created_at': DateTime.now().toIso8601String(),
         'user_id': user?.id, 
       });
@@ -129,21 +134,21 @@ class ReportPageState extends State<ReportPage> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('تم إرسال البلاغ بنجاح'),
-          content: Text('كود متابعة البلاغ الخاص بك هو: $reportCode'),
+          title: Text(t('success_message', lang: lang)),
+          content: Text('$reportCode'),
           actions: [
             TextButton(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: reportCode));
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ الكود!'))
+                  const SnackBar(content: Text('Code Copied'))
                 );
               },
-              child: const Text('نسخ الكود'),
+              child: const Text('Copy'),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('حسناً'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -151,7 +156,7 @@ class ReportPageState extends State<ReportPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ: ${e.toString()}'))
+        SnackBar(content: Text('${t('error_message', lang: lang)} $e'))
       );
     } finally {
       setState(() {
@@ -186,124 +191,124 @@ class ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('الإبلاغ عن مشكلة'),
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'عنوان المشكلة',
-                          border: OutlineInputBorder(),
+    final lang = appLocale.value.languageCode;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t('report_page_title', lang: lang)),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        labelText: t('problem_title', lang: lang),
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? t('fill_fields_error', lang: lang) : null,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedCategory,
+                      hint: Text(t('select_category', lang: lang)),
+                      items: _categories.map((String categoryKey) {
+                        return DropdownMenuItem<String>(
+                          value: categoryKey,
+                          child: Text(t(categoryKey, lang: lang)),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCategory = newValue;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? t('fill_fields_error', lang: lang) : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: t('problem_desc', lang: lang),
+                        border: const OutlineInputBorder(),
+                      ),
+                      maxLines: 4,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? t('fill_fields_error', lang: lang) : null,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(t('location_title', lang: lang), style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 300,
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: _selectedLocation,
+                          initialZoom: 13.0,
+                          onTap: (tapPosition, point) {
+                            setState(() {
+                              _selectedLocation = point;
+                            });
+                          },
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'الحقل مطلوب' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
-                        hint: const Text('اختر الفئة'),
-                        items: _categories.map((String category) {
-                          return DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                        },
-                        validator: (value) =>
-                            value == null ? 'الرجاء اختيار فئة' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'وصف المشكلة',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 4,
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'الحقل مطلوب' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Text('تحديد الموقع', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 300,
-                        child: FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: _selectedLocation,
-                            initialZoom: 13.0,
-                            onTap: (tapPosition, point) {
-                              setState(() {
-                                _selectedLocation = point;
-                              });
-                            },
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                              subdomains: const ['a', 'b', 'c'],
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  width: 80.0,
-                                  height: 80.0,
-                                  point: _selectedLocation,
-                                  child: const Icon(
-                                    Icons.location_pin,
-                                    color: Colors.red,
-                                    size: 40.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
                         children: [
-                          ElevatedButton(
-                            onPressed: _pickImage,
-                            child: const Text('إرفاق صورة'),
+                          TileLayer(
+                            urlTemplate:
+                                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            subdomains: const ['a', 'b', 'c'],
                           ),
-                          const SizedBox(width: 10),
-                          if (_selectedImageData != null)
-                            const Icon(Icons.check, color: Colors.green)
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                width: 80.0,
+                                height: 80.0,
+                                point: _selectedLocation,
+                                child: const Icon(
+                                  Icons.location_pin,
+                                  color: Colors.red,
+                                  size: 40.0,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      _buildSelectedImage(),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _submitReport,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _pickImage,
+                          child: Text(t('pick_image', lang: lang)),
                         ),
-                        child: const Text('إرسال البلاغ'),
+                        const SizedBox(width: 10),
+                        if (_selectedImageData != null)
+                          const Icon(Icons.check, color: Colors.green)
+                      ],
+                    ),
+                    _buildSelectedImage(),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _submitReport,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
                       ),
-                    ],
-                  ),
+                      child: Text(t('submit_btn', lang: lang)),
+                    ),
+                  ],
                 ),
               ),
-      ),
+            ),
     );
   }
 }

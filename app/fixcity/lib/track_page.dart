@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/problem.dart'; 
+import 'translations.dart';
+import 'main.dart';
 
 class TrackPage extends StatefulWidget {
   const TrackPage({super.key});
@@ -20,6 +22,8 @@ class TrackPageState extends State<TrackPage> {
   String? _errorMessage;
 
   Future<void> _trackProblem() async {
+    final lang = appLocale.value.languageCode;
+    
     if (_codeController.text.isEmpty) {
       return;
     }
@@ -55,9 +59,9 @@ class TrackPageState extends State<TrackPage> {
             .toList();
       }
     } on PostgrestException {
-        _errorMessage = 'لم يتم العثور على بلاغ بهذا الكود.';
+        _errorMessage = t('not_found', lang: lang);
     } catch (e) {
-      _errorMessage = 'حدث خطأ أثناء البحث: ${e.toString()}';
+      _errorMessage = '${t('error_message', lang: lang)} ${e.toString()}';
     } finally {
       setState(() {
         _isLoading = false;
@@ -67,65 +71,68 @@ class TrackPageState extends State<TrackPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('متابعة حالة البلاغ'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _codeController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  labelText: 'أدخل كود المتابعة',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: _trackProblem,
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
+    final lang = appLocale.value.languageCode;
 
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (_errorMessage != null)
-                Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)))
-              else if (_foundProblem != null)
-                _buildReportDetails()
-              else
-                const Center(child: Text('أدخل كوداً للبحث عن حالة البلاغ')),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t('track_page_title', lang: lang)),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _codeController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                labelText: t('enter_code', lang: lang),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _trackProblem,
+                ),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_errorMessage != null)
+              Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)))
+            else if (_foundProblem != null)
+              _buildReportDetails()
+            else
+               Center(child: Text(t('track_subtitle', lang: lang))),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildReportDetails() {
+    final lang = appLocale.value.languageCode;
+
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('نتيجة التتبع',
+            Text(t('track_page_title', lang: lang),
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
-            _buildDetailRow('الكود:', _foundProblem!.reportCode),
-            _buildDetailRow('الحالة الحالية:', _foundProblem!.status),
-            _buildDetailRow('العنوان:', _foundProblem!.title),
-            _buildDetailRow('الوصف:', _foundProblem!.description),
+            _buildDetailRow('Code:', _foundProblem!.reportCode),
+            
+            _buildDetailRow(t('report_status', lang: lang), t(_foundProblem!.status, lang: lang)),
+            
+            _buildDetailRow('Title:', _foundProblem!.title),
+            _buildDetailRow('Desc:', _foundProblem!.description),
             if (_foundProblem!.photoUrl != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Image.network(_foundProblem!.photoUrl!),
               ),
             const SizedBox(height: 24),
-            Text('سجل التحديثات:',
+            Text('Updates:',
                 style: Theme.of(context).textTheme.titleLarge),
             _buildUpdatesList(),
           ],
@@ -152,7 +159,7 @@ class TrackPageState extends State<TrackPage> {
     if (_updates.isEmpty) {
       return const Padding(
         padding: EdgeInsets.only(top: 8.0),
-        child: Text('لا توجد تحديثات بعد.'),
+        child: Text('No updates yet.'),
       );
     }
 
@@ -168,7 +175,7 @@ class TrackPageState extends State<TrackPage> {
           margin: const EdgeInsets.symmetric(vertical: 4.0),
           child: ListTile(
             title: Text(update.text),
-            subtitle: Text('بتاريخ: $formattedDate'),
+            subtitle: Text(formattedDate),
           ),
         );
       },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'translations.dart';
+import 'main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,13 +29,13 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في تسجيل الدخول: ${e.message}'))
+          SnackBar(content: Text('Error: ${e.message}'))
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ غير متوقع: ${e.toString()}'))
+          SnackBar(content: Text('Error: ${e.toString()}'))
         );
       }
     }
@@ -49,54 +51,75 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('تسجيل الدخول')),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'البريد الإلكتروني',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'كلمة المرور',
-                      border: OutlineInputBorder(),
-                    ),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 24),
-                  if (_isLoading)
-                    const CircularProgressIndicator()
-                  else
-                    ElevatedButton(
-                      onPressed: _login,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
-                      ),
-                      child: const Text('تسجيل الدخول'),
-                    ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/signup');
-                    },
-                    child: const Text('ليس لديك حساب؟ سجل الآن'),
-                  ),
-                ],
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t('login', lang: appLocale.value.languageCode)),
+        actions: [
+           TextButton(
+            onPressed: () {
+              setState(() {
+                if (appLocale.value.languageCode == 'ar') {
+                  appLocale.value = const Locale('en');
+                } else {
+                  appLocale.value = const Locale('ar');
+                }
+              });
+            },
+            child: Text(
+              t('switch_lang', lang: appLocale.value.languageCode),
+              style: const TextStyle(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold
               ),
+            ),
+          ),
+        ],
+      ),
+
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: t('email', lang: appLocale.value.languageCode),
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: t('password', lang: appLocale.value.languageCode),
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 24),
+                if (_isLoading)
+                  const CircularProgressIndicator()
+                else
+                  ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    child: Text(t('login', lang: appLocale.value.languageCode)),
+                  ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/signup');
+                  },
+                  child: Text(t('signup', lang: appLocale.value.languageCode)),
+                ),
+              ],
             ),
           ),
         ),
