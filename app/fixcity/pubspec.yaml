@@ -13,7 +13,6 @@ dependencies:
   
   # supabase
   supabase_flutter: ^2.5.0
-  cloud_firestore: ^6.1.0
   
   # map
   flutter_map: ^8.2.2

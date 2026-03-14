@@ -1,4 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// No Firebase imports — this app uses Supabase only.
+
+class LatLngPoint {
+  final double latitude;
+  final double longitude;
+  const LatLngPoint(this.latitude, this.longitude);
+}
 
 class Problem {
   String? id;
@@ -7,9 +13,9 @@ class Problem {
   String category;
   String description;
   String? photoUrl;
-  GeoPoint location; 
+  LatLngPoint location;
   String status;
-  Timestamp createdAt;
+  DateTime createdAt;
   String? userId;
 
   Problem({
@@ -24,17 +30,21 @@ class Problem {
     required this.createdAt,
     this.userId,
   });
+
   factory Problem.fromSupabase(Map<String, dynamic> data) {
     return Problem(
-      id: data['id']?.toString(), 
+      id: data['id']?.toString(),
       reportCode: data['report_code'] ?? '',
       title: data['title'] ?? '',
       category: data['category'] ?? '',
       description: data['description'] ?? '',
       photoUrl: data['photo_url'],
-      location: GeoPoint(data['latitude'] ?? 0.0, data['longitude'] ?? 0.0), 
-      status: data['status'] ?? 'جديد',
-      createdAt: Timestamp.fromDate(DateTime.parse(data['created_at'])), 
+      location: LatLngPoint(
+        (data['latitude'] as num?)?.toDouble() ?? 0.0,
+        (data['longitude'] as num?)?.toDouble() ?? 0.0,
+      ),
+      status: data['status'] ?? 'pending',
+      createdAt: DateTime.parse(data['created_at']),
       userId: data['user_id']?.toString(),
     );
   }
