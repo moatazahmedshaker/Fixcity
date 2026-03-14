@@ -74,7 +74,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             .then((data) => data.cast<Map<String, dynamic>>().toList()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: _green));
+            return const _DashboardSkeleton();
           }
           if (snapshot.hasError) {
             return Center(child: Text('خطأ: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
@@ -196,3 +196,59 @@ class _StatChip extends StatelessWidget {
     );
   }
 }
+
+class _DashboardSkeleton extends StatefulWidget {
+  const _DashboardSkeleton();
+  @override
+  State<_DashboardSkeleton> createState() => _DashboardSkeletonState();
+}
+
+class _DashboardSkeletonState extends State<_DashboardSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _anim = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  Widget _bone({double height = 16, double? width, double radius = 8}) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        height: height, width: width,
+        decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(radius)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 6,
+      itemBuilder: (_, __) => Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+        child: Row(children: [
+          FadeTransition(opacity: _anim, child: Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10)))),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _bone(height: 14, width: 180),
+            const SizedBox(height: 8),
+            _bone(height: 10, width: 120),
+            const SizedBox(height: 4),
+            _bone(height: 10, width: 80),
+          ])),
+        ]),
+      ),
+    );
+  }
+}
+

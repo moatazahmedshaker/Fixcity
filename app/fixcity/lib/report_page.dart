@@ -75,7 +75,17 @@ class ReportPageState extends State<ReportPage> {
 
   Future<void> _submitReport() async {
     final lang = appLocale.value.languageCode;
+    final isAr = lang == 'ar';
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isAr ? 'الرجاء اختيار فئة' : 'Please select a category'),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+      return;
+    }
     if (_selectedImageData == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(t('fill_fields_error', lang: lang)),
@@ -85,6 +95,73 @@ class ReportPageState extends State<ReportPage> {
       ));
       return;
     }
+
+    // Confirm dialog before submitting
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 56, height: 56,
+              decoration: BoxDecoration(color: const Color(0xFF2D6A4F).withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.send_outlined, color: Color(0xFF2D6A4F), size: 28),
+            ),
+            const SizedBox(height: 16),
+            Text(isAr ? 'تأكيد إرسال البلاغ' : 'Confirm Submission',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
+            const SizedBox(height: 8),
+            Text(isAr ? 'هل أنت متأكد من إرسال هذا البلاغ؟ لا يمكن التراجع بعد الإرسال.' : 'Are you sure you want to submit this report? This cannot be undone.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.5)),
+            const SizedBox(height: 8),
+            // Summary
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(10)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _ConfirmRow(label: isAr ? 'العنوان' : 'Title', value: _titleController.text),
+                _ConfirmRow(label: isAr ? 'الفئة' : 'Category', value: t(_selectedCategory!, lang: lang)),
+              ]),
+            ),
+            const SizedBox(height: 20),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade600,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                  child: Text(isAr ? 'إلغاء' : 'Cancel'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2D6A4F),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    elevation: 0,
+                  ),
+                  child: Text(isAr ? 'إرسال' : 'Submit'),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
     setState(() => _isLoading = true);
     try {
       String reportCode = randomAlphaNumeric(10).toUpperCase();
@@ -193,11 +270,7 @@ class ReportPageState extends State<ReportPage> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const CircularProgressIndicator(color: _green),
-              const SizedBox(height: 16),
-              Text(isAr ? 'جارٍ إرسال البلاغ...' : 'Submitting report...', style: TextStyle(color: Colors.grey.shade500)),
-            ]))
+          ? const _ReportSkeleton()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Form(
@@ -343,11 +416,11 @@ class _CategoryGrid extends StatelessWidget {
   final ValueChanged<String> onSelect;
   const _CategoryGrid({required this.categories, required this.selected, required this.lang, required this.onSelect});
 
-  static const _icons = {
-    'cat_pothole': Icons.warning_amber_outlined,
-    'cat_trash': Icons.delete_outline,
-    'cat_lighting': Icons.lightbulb_outline,
-    'cat_other': Icons.more_horiz,
+  static const _meta = {
+    'cat_pothole':  {'icon': Icons.warning_amber_rounded,   'color': Color(0xFFF59E0B)},
+    'cat_trash':    {'icon': Icons.delete_outline,           'color': Color(0xFFEF4444)},
+    'cat_lighting': {'icon': Icons.lightbulb_outline,        'color': Color(0xFF6366F1)},
+    'cat_other':    {'icon': Icons.more_horiz,               'color': Color(0xFF64748B)},
   };
 
   @override
@@ -360,22 +433,129 @@ class _CategoryGrid extends StatelessWidget {
       mainAxisSpacing: 10,
       children: categories.map((cat) {
         final isSelected = selected == cat;
+        final icon = _meta[cat]?['icon'] as IconData? ?? Icons.help_outline;
+        final color = _meta[cat]?['color'] as Color? ?? Colors.grey;
         return GestureDetector(
           onTap: () => onSelect(cat),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF2D6A4F).withOpacity(0.08) : Colors.white,
+              color: isSelected ? color.withOpacity(0.1) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isSelected ? const Color(0xFF2D6A4F) : Colors.grey.shade200, width: 1.5),
+              border: Border.all(
+                color: isSelected ? color : Colors.grey.shade200,
+                width: isSelected ? 2 : 1.5,
+              ),
+              boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))] : [],
             ),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(_icons[cat] ?? Icons.help_outline, color: isSelected ? const Color(0xFF2D6A4F) : Colors.grey.shade400, size: 24),
+              Icon(icon, color: isSelected ? color : Colors.grey.shade400, size: 26),
               const SizedBox(height: 6),
-              Text(t(cat, lang: lang), textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isSelected ? const Color(0xFF2D6A4F) : Colors.grey.shade500)),
+              Text(t(cat, lang: lang),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
+                      color: isSelected ? color : Colors.grey.shade500)),
             ]),
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+// ── Skeleton loader shown while submitting ─────────────────────────────────
+
+class _ReportSkeleton extends StatefulWidget {
+  const _ReportSkeleton();
+  @override
+  State<_ReportSkeleton> createState() => _ReportSkeletonState();
+}
+
+class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _animation = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
+
+  Widget _bone({double height = 16, double? width, double radius = 8}) {
+    return FadeTransition(
+      opacity: _animation,
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _bone(height: 14, width: 100),
+        const SizedBox(height: 8),
+        _bone(height: 50, radius: 10),
+        const SizedBox(height: 20),
+        _bone(height: 14, width: 120),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: _bone(height: 80, radius: 12)),
+          const SizedBox(width: 10),
+          Expanded(child: _bone(height: 80, radius: 12)),
+          const SizedBox(width: 10),
+          Expanded(child: _bone(height: 80, radius: 12)),
+          const SizedBox(width: 10),
+          Expanded(child: _bone(height: 80, radius: 12)),
+        ]),
+        const SizedBox(height: 20),
+        _bone(height: 14, width: 100),
+        const SizedBox(height: 8),
+        _bone(height: 100, radius: 10),
+        const SizedBox(height: 20),
+        _bone(height: 14, width: 80),
+        const SizedBox(height: 8),
+        _bone(height: 260, radius: 16),
+        const SizedBox(height: 20),
+        _bone(height: 120, radius: 12),
+        const SizedBox(height: 32),
+        Center(child: Column(children: [
+          const CircularProgressIndicator(color: Color(0xFF2D6A4F)),
+          const SizedBox(height: 12),
+          Text(
+            appLocale.value.languageCode == 'ar' ? 'جارٍ إرسال البلاغ...' : 'Submitting report...',
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+          ),
+        ])),
+      ]),
+    );
+  }
+}
+
+// ── Confirm dialog summary row ─────────────────────────────────────────────
+
+class _ConfirmRow extends StatelessWidget {
+  final String label, value;
+  const _ConfirmRow({required this.label, required this.value});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(children: [
+        Text('$label: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF0B1F3A)), overflow: TextOverflow.ellipsis)),
+      ]),
     );
   }
 }

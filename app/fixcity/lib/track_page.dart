@@ -118,11 +118,7 @@ class TrackPageState extends State<TrackPage> {
         // Body
         Expanded(
           child: _isLoading
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const CircularProgressIndicator(color: _green),
-                  const SizedBox(height: 12),
-                  Text(isAr ? 'جارٍ البحث...' : 'Searching...', style: TextStyle(color: Colors.grey.shade500)),
-                ]))
+              ? const _TrackSkeleton()
               : _errorMessage != null
                   ? _ErrorState(message: _errorMessage!, isAr: isAr)
                   : _foundProblem != null
@@ -317,3 +313,55 @@ class _Divider extends StatelessWidget {
     return Divider(height: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16);
   }
 }
+
+class _TrackSkeleton extends StatefulWidget {
+  const _TrackSkeleton();
+  @override
+  State<_TrackSkeleton> createState() => _TrackSkeletonState();
+}
+
+class _TrackSkeletonState extends State<_TrackSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _anim = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  Widget _bone({double height = 16, double? width, double radius = 8}) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        height: height, width: width,
+        decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(radius)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _bone(height: 80, radius: 16),
+        const SizedBox(height: 20),
+        _bone(height: 180, radius: 16),
+        const SizedBox(height: 16),
+        _bone(height: 200, radius: 16),
+        const SizedBox(height: 20),
+        _bone(height: 14, width: 120),
+        const SizedBox(height: 12),
+        _bone(height: 70, radius: 12),
+        const SizedBox(height: 8),
+        _bone(height: 70, radius: 12),
+      ]),
+    );
+  }
+}
+

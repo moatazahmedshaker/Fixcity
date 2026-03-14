@@ -159,10 +159,6 @@ class _HomePageState extends State<HomePage> {
                   ),
 
                 const SizedBox(height: 32),
-
-                // Stats row
-                _StatsRow(isAr: isAr),
-                const SizedBox(height: 32),
               ]),
             ),
           ),
@@ -282,44 +278,4 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
-  final bool isAr;
-  const _StatsRow({required this.isAr});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B1F3A),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-        _StatCol(value: '2.4k', label: isAr ? 'بلاغ محلول' : 'Resolved'),
-        _Divider(),
-        _StatCol(value: '48h', label: isAr ? 'متوسط الاستجابة' : 'Avg. Response'),
-        _Divider(),
-        _StatCol(value: '98%', label: isAr ? 'الرضا' : 'Satisfaction'),
-      ]),
-    );
-  }
-}
-
-class _StatCol extends StatelessWidget {
-  final String value, label;
-  const _StatCol({required this.value, required this.label});
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [
-      Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF52B788))),
-      Text(label, style: const TextStyle(fontSize: 11, color: Colors.white54)),
-    ]);
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(width: 1, height: 36, color: Colors.white12);
-  }
-}
