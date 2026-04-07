@@ -150,12 +150,8 @@ class _HomePageState extends State<HomePage> {
                     iconBg: const Color(0xFFF59E0B),
                     title: t('my_reports', lang: lang),
                     subtitle: t('my_reports_subtitle', lang: lang),
-                    badge: isAr ? 'قريباً' : 'Soon',
-                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(t('snack_construction', lang: lang)),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    )),
+                    badge: null,
+                    onTap: () => Navigator.of(context).pushNamed('/my_reports'),
                   ),
 
                 const SizedBox(height: 32),

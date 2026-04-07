@@ -7,6 +7,7 @@ import 'report_page.dart';
 import 'track_page.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
+import 'my_reports_page.dart';
 import 'admin/admin_login_page.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'admin/report_details_page.dart';
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
             '/track': (context) => const TrackPage(),
             '/login': (context) => const LoginPage(),
             '/signup': (context) => const SignupPage(),
+            '/my_reports': (context) => const MyReportsPage(),
             '/admin': (context) => const AdminLoginPage(),
             '/admin/dashboard': (context) => const AdminDashboardPage(),
           },
