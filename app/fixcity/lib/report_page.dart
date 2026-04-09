@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -24,17 +26,22 @@ class ReportPageState extends State<ReportPage> {
   final _descriptionController = TextEditingController();
   final _mapController = MapController();
 
-  static const _green = Color(0xFF2D6A4F);
+  static const _green  = Color(0xFF2D6A4F);
   static const _greenLight = Color(0xFF52B788);
-  static const _navy = Color(0xFF0B1F3A);
+  static const _navy   = Color(0xFF0B1F3A);
+
+  // Anthropic API key — replace with your key or load from env
+  static const _geminiKey = 'AIzaSyBbEvjMFSuIzk3uuy7ZO0kWBFjZIOtKT34';
 
   final List<String> _categories = ['cat_pothole', 'cat_trash', 'cat_lighting', 'cat_other'];
   String? _selectedCategory;
   Uint8List? _selectedImageData;
-  XFile? _selectedImageFile;
+  XFile?    _selectedImageFile;
   LatLng _selectedLocation = const LatLng(30.0444, 31.2357);
-  bool _isLoading = false;
+  bool _isLoading       = false;
   bool _locationLoading = false;
+  bool _aiLoading       = false;
+  String? _aiSuggestion; // stores the suggested category key
 
   @override
   void initState() {
@@ -42,8 +49,117 @@ class ReportPageState extends State<ReportPage> {
     _getCurrentLocation();
   }
 
+  // ── AI Classification ────────────────────────────────────────────────────
+
+  // Keyword-based fallback — works offline, no API needed
+  String _keywordClassify(String text) {
+    final t = text.toLowerCase();
+
+    // Pothole keywords (Arabic + English)
+    if (RegExp(r'pothole|crack|road|pavement|asphalt|broken road|حفرة|طريق|رصيف|شقوق|تلف').hasMatch(t)) {
+      return 'cat_pothole';
+    }
+    // Trash keywords
+    if (RegExp(r'trash|garbage|waste|litter|dump|smell|dirty|قمامة|نفايات|زبالة|قذارة|روائح|نظافة').hasMatch(t)) {
+      return 'cat_trash';
+    }
+    // Lighting keywords
+    if (RegExp(r'light|lamp|dark|electricity|bulb|street light|إنارة|كهرباء|مصباح|ظلام|نور').hasMatch(t)) {
+      return 'cat_lighting';
+    }
+
+    return 'cat_other';
+  }
+
+  Future<void> _classifyWithAI() async {
+    final lang        = appLocale.value.languageCode;
+    final isAr        = lang == 'ar';
+    final description = _descriptionController.text.trim();
+    final title       = _titleController.text.trim();
+    final combined    = '$title $description';
+
+    if (description.isEmpty && title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isAr ? 'اكتب وصف المشكلة أولاً' : 'Write a description first'),
+        backgroundColor: Colors.orange.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+      return;
+    }
+
+    setState(() => _aiLoading = true);
+
+    String matched = 'cat_other';
+    bool usedAI    = false;
+
+    // Try Gemini first
+    try {
+      final prompt = '''
+You are a municipal issue classifier. Based on the following report, classify it into ONE of these categories:
+- cat_pothole: road damage, potholes, cracks, broken pavement
+- cat_trash: garbage, waste, littering, dump, smell, cleanliness
+- cat_lighting: street lights, lamp, electricity, dark roads
+- cat_other: anything else
+
+Report title: "$title"
+Report description: "$description"
+
+Respond with ONLY the category key, nothing else. Example: cat_pothole
+''';
+
+      final response = await http.post(
+        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$_geminiKey'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contents': [{'parts': [{'text': prompt}]}],
+          'generationConfig': {'maxOutputTokens': 20, 'temperature': 0.1},
+        }),
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final data    = jsonDecode(response.body);
+        final rawText = (data['candidates'][0]['content']['parts'][0]['text'] as String).trim().toLowerCase();
+        for (final cat in _categories) {
+          if (rawText.contains(cat)) { matched = cat; break; }
+        }
+        usedAI = true;
+      } else {
+        // API failed — use keyword fallback silently
+        matched = _keywordClassify(combined);
+      }
+    } catch (_) {
+      // CORS, network error, timeout — use keyword fallback silently
+      matched = _keywordClassify(combined);
+    }
+
+    if (mounted) {
+      setState(() {
+        _aiSuggestion     = matched;
+        _selectedCategory = matched;
+        _aiLoading        = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+          const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(isAr
+                ? 'اقتراح الذكاء الاصطناعي: ${t(matched, lang: lang)}'
+                : 'AI suggested: ${t(matched, lang: lang)}'),
+          ),
+        ]),
+        backgroundColor: _green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+    }
+  }
+
+  // ── Image & Location ─────────────────────────────────────────────────────
+
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
+    final picker     = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       _selectedImageFile = pickedFile;
@@ -73,6 +189,8 @@ class ReportPageState extends State<ReportPage> {
     }
   }
 
+  // ── Submit ───────────────────────────────────────────────────────────────
+
   Future<void> _submitReport() async {
     final lang = appLocale.value.languageCode;
     final isAr = lang == 'ar';
@@ -96,7 +214,7 @@ class ReportPageState extends State<ReportPage> {
       return;
     }
 
-    // Confirm dialog before submitting
+    // Confirm dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
@@ -106,25 +224,26 @@ class ReportPageState extends State<ReportPage> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               width: 56, height: 56,
-              decoration: BoxDecoration(color: const Color(0xFF2D6A4F).withOpacity(0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.send_outlined, color: Color(0xFF2D6A4F), size: 28),
+              decoration: BoxDecoration(color: _green.withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.send_outlined, color: _green, size: 28),
             ),
             const SizedBox(height: 16),
             Text(isAr ? 'تأكيد إرسال البلاغ' : 'Confirm Submission',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _navy)),
             const SizedBox(height: 8),
-            Text(isAr ? 'هل أنت متأكد من إرسال هذا البلاغ؟ لا يمكن التراجع بعد الإرسال.' : 'Are you sure you want to submit this report? This cannot be undone.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.5)),
-            const SizedBox(height: 8),
-            // Summary
+            Text(
+              isAr ? 'هل أنت متأكد من إرسال هذا البلاغ؟' : 'Are you sure you want to submit this report?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.5),
+            ),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(10)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _ConfirmRow(label: isAr ? 'العنوان' : 'Title', value: _titleController.text),
-                _ConfirmRow(label: isAr ? 'الفئة' : 'Category', value: t(_selectedCategory!, lang: lang)),
+                _ConfirmRow(label: isAr ? 'العنوان' : 'Title',    value: _titleController.text),
+                _ConfirmRow(label: isAr ? 'الفئة'   : 'Category', value: t(_selectedCategory!, lang: lang)),
               ]),
             ),
             const SizedBox(height: 20),
@@ -146,7 +265,7 @@ class ReportPageState extends State<ReportPage> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D6A4F),
+                    backgroundColor: _green,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -163,23 +282,24 @@ class ReportPageState extends State<ReportPage> {
 
     if (confirmed != true) return;
     setState(() => _isLoading = true);
+
     try {
       String reportCode = randomAlphaNumeric(10).toUpperCase();
-      String fileName = 'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      String fileName   = 'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
       await supabase.storage.from('files').uploadBinary(fileName, _selectedImageData!,
           fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'));
       String photoUrl = supabase.storage.from('files').getPublicUrl(fileName);
       await supabase.from('reports').insert({
         'report_code': reportCode,
-        'title': _titleController.text,
-        'category': _selectedCategory!,
+        'title':       _titleController.text,
+        'category':    _selectedCategory!,
         'description': _descriptionController.text,
-        'photo_url': photoUrl,
-        'latitude': _selectedLocation.latitude,
-        'longitude': _selectedLocation.longitude,
-        'status': 'pending',
-        'created_at': DateTime.now().toIso8601String(),
-        'user_id': supabase.auth.currentUser?.id,
+        'photo_url':   photoUrl,
+        'latitude':    _selectedLocation.latitude,
+        'longitude':   _selectedLocation.longitude,
+        'status':      'pending',
+        'created_at':  DateTime.now().toIso8601String(),
+        'user_id':     supabase.auth.currentUser?.id,
       });
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -223,7 +343,7 @@ class ReportPageState extends State<ReportPage> {
               decoration: BoxDecoration(
                 color: const Color(0xFFF0FDF4),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF52B788)),
+                border: Border.all(color: _greenLight),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text(code, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _green, letterSpacing: 2)),
@@ -255,6 +375,8 @@ class ReportPageState extends State<ReportPage> {
     );
   }
 
+  // ── Build ────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final lang = appLocale.value.languageCode;
@@ -266,7 +388,8 @@ class ReportPageState extends State<ReportPage> {
         backgroundColor: _navy,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(t('report_page_title', lang: lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        title: Text(t('report_page_title', lang: lang),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: _isLoading
@@ -277,33 +400,50 @@ class ReportPageState extends State<ReportPage> {
                 key: _formKey,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                  // Title
+                  // ── Title ──────────────────────────────────────────
                   _SectionLabel(label: t('problem_title', lang: lang)),
                   const SizedBox(height: 8),
-                  FixField(controller: _titleController, label: '', hint: isAr ? 'مثال: حفرة في الطريق الرئيسي' : 'e.g. Large pothole on main road', icon: Icons.title_outlined,),
-
+                  FixField(
+                    controller: _titleController,
+                    label: '',
+                    hint: isAr ? 'مثال: حفرة في الطريق الرئيسي' : 'e.g. Large pothole on main road',
+                    icon: Icons.title_outlined,
+                  ),
                   const SizedBox(height: 20),
 
-                  // Category
+                  // ── Description ────────────────────────────────────
+                  _SectionLabel(label: t('problem_desc', lang: lang)),
+                  const SizedBox(height: 8),
+                  FixField(
+                    controller: _descriptionController,
+                    label: '',
+                    hint: isAr ? 'صف المشكلة بالتفصيل...' : 'Describe the problem in detail...',
+                    icon: Icons.description_outlined,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── AI Classify Button ─────────────────────────────
+                  _AIClassifyButton(
+                    isLoading: _aiLoading,
+                    isAr: isAr,
+                    onTap: _classifyWithAI,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── Category Grid ──────────────────────────────────
                   _SectionLabel(label: t('select_category', lang: lang)),
                   const SizedBox(height: 8),
                   _CategoryGrid(
                     categories: _categories,
                     selected: _selectedCategory,
+                    aiSuggestion: _aiSuggestion,
                     lang: lang,
                     onSelect: (val) => setState(() => _selectedCategory = val),
                   ),
-
                   const SizedBox(height: 20),
 
-                  // Description
-                  _SectionLabel(label: t('problem_desc', lang: lang)),
-                  const SizedBox(height: 8),
-                  FixField(controller: _descriptionController, label: '', hint: isAr ? 'صف المشكلة بالتفصيل...' : 'Describe the problem in detail...', icon: Icons.description_outlined, maxLines: 4),
-
-                  const SizedBox(height: 20),
-
-                  // Location
+                  // ── Location ───────────────────────────────────────
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     _SectionLabel(label: t('location_title', lang: lang)),
                     TextButton.icon(
@@ -311,7 +451,8 @@ class ReportPageState extends State<ReportPage> {
                       icon: _locationLoading
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: _green))
                           : const Icon(Icons.my_location, size: 16, color: _green),
-                      label: Text(isAr ? 'موقعي الحالي' : 'My location', style: const TextStyle(fontSize: 12, color: _green)),
+                      label: Text(isAr ? 'موقعي الحالي' : 'My location',
+                          style: const TextStyle(fontSize: 12, color: _green)),
                     ),
                   ]),
                   const SizedBox(height: 8),
@@ -327,7 +468,10 @@ class ReportPageState extends State<ReportPage> {
                           onTap: (_, point) => setState(() => _selectedLocation = point),
                         ),
                         children: [
-                          TileLayer(urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", subdomains: const ['a', 'b', 'c']),
+                          TileLayer(
+                            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            subdomains: const ['a', 'b', 'c'],
+                          ),
                           MarkerLayer(markers: [
                             Marker(
                               width: 50, height: 50,
@@ -344,13 +488,14 @@ class ReportPageState extends State<ReportPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: Text(isAr ? 'اضغط على الخريطة لتحديد الموقع بدقة' : 'Tap on the map to pinpoint the exact location',
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+                    child: Text(
+                      isAr ? 'اضغط على الخريطة لتحديد الموقع بدقة' : 'Tap on the map to pinpoint the exact location',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                    ),
                   ),
-
                   const SizedBox(height: 20),
 
-                  // Image
+                  // ── Photo ──────────────────────────────────────────
                   _SectionLabel(label: isAr ? 'إرفاق صورة' : 'Attach Photo'),
                   const SizedBox(height: 8),
                   GestureDetector(
@@ -364,7 +509,6 @@ class ReportPageState extends State<ReportPage> {
                         border: Border.all(
                           color: _selectedImageData != null ? _green : Colors.grey.shade300,
                           width: _selectedImageData != null ? 2 : 1.5,
-                          strokeAlign: BorderSide.strokeAlignInside,
                         ),
                       ),
                       child: _selectedImageData != null
@@ -372,11 +516,14 @@ class ReportPageState extends State<ReportPage> {
                               borderRadius: BorderRadius.circular(11),
                               child: Stack(children: [
                                 Image.memory(_selectedImageData!, width: double.infinity, fit: BoxFit.cover),
-                                Positioned(top: 8, right: 8, child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
-                                  child: const Icon(Icons.check, color: Colors.white, size: 14),
-                                )),
+                                Positioned(
+                                  top: 8, right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
+                                    child: const Icon(Icons.check, color: Colors.white, size: 14),
+                                  ),
+                                ),
                               ]),
                             )
                           : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -387,10 +534,9 @@ class ReportPageState extends State<ReportPage> {
                             ]),
                     ),
                   ),
-
                   const SizedBox(height: 32),
 
-                  // Submit
+                  // ── Submit ─────────────────────────────────────────
                   FixGreenButton(label: t('submit_btn', lang: lang), onPressed: _submitReport),
                   const SizedBox(height: 20),
                 ]),
@@ -400,27 +546,65 @@ class ReportPageState extends State<ReportPage> {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
+// ── AI Classify Button ─────────────────────────────────────────────────────
+
+class _AIClassifyButton extends StatelessWidget {
+  final bool isLoading;
+  final bool isAr;
+  final VoidCallback onTap;
+  const _AIClassifyButton({required this.isLoading, required this.isAr, required this.onTap});
+
   @override
   Widget build(BuildContext context) {
-    return Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A)));
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0B1F3A), Color(0xFF1A3A5C)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: const Color(0xFF0B1F3A).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          if (isLoading)
+            const SizedBox(
+              width: 16, height: 16,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            )
+          else
+            const Icon(Icons.auto_awesome, color: Color(0xFF52B788), size: 18),
+          const SizedBox(width: 10),
+          Text(
+            isLoading
+                ? (isAr ? 'جارٍ التصنيف بالذكاء الاصطناعي...' : 'AI is classifying...')
+                : (isAr ? 'اقتراح الفئة بالذكاء الاصطناعي ✨' : 'Suggest Category with AI ✨'),
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ]),
+      ),
+    );
   }
 }
+
+// ── Category Grid ──────────────────────────────────────────────────────────
 
 class _CategoryGrid extends StatelessWidget {
   final List<String> categories;
   final String? selected;
+  final String? aiSuggestion;
   final String lang;
   final ValueChanged<String> onSelect;
-  const _CategoryGrid({required this.categories, required this.selected, required this.lang, required this.onSelect});
+  const _CategoryGrid({required this.categories, required this.selected, required this.aiSuggestion, required this.lang, required this.onSelect});
 
   static const _meta = {
-    'cat_pothole':  {'icon': Icons.warning_amber_rounded,   'color': Color(0xFFF59E0B)},
-    'cat_trash':    {'icon': Icons.delete_outline,           'color': Color(0xFFEF4444)},
-    'cat_lighting': {'icon': Icons.lightbulb_outline,        'color': Color(0xFF6366F1)},
-    'cat_other':    {'icon': Icons.more_horiz,               'color': Color(0xFF64748B)},
+    'cat_pothole':  {'icon': Icons.warning_amber_rounded,  'color': Color(0xFFF59E0B)},
+    'cat_trash':    {'icon': Icons.delete_outline,          'color': Color(0xFFEF4444)},
+    'cat_lighting': {'icon': Icons.lightbulb_outline,       'color': Color(0xFF6366F1)},
+    'cat_other':    {'icon': Icons.more_horiz,              'color': Color(0xFF64748B)},
   };
 
   @override
@@ -432,9 +616,11 @@ class _CategoryGrid extends StatelessWidget {
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
       children: categories.map((cat) {
-        final isSelected = selected == cat;
-        final icon = _meta[cat]?['icon'] as IconData? ?? Icons.help_outline;
-        final color = _meta[cat]?['color'] as Color? ?? Colors.grey;
+        final isSelected   = selected == cat;
+        final isAISuggested = aiSuggestion == cat;
+        final icon  = _meta[cat]?['icon']  as IconData? ?? Icons.help_outline;
+        final color = _meta[cat]?['color'] as Color?    ?? Colors.grey;
+
         return GestureDetector(
           onTap: () => onSelect(cat),
           child: AnimatedContainer(
@@ -443,18 +629,34 @@ class _CategoryGrid extends StatelessWidget {
               color: isSelected ? color.withOpacity(0.1) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? color : Colors.grey.shade200,
-                width: isSelected ? 2 : 1.5,
+                color: isSelected ? color : (isAISuggested ? const Color(0xFF52B788) : Colors.grey.shade200),
+                width: isSelected ? 2 : (isAISuggested ? 1.5 : 1.5),
               ),
-              boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))] : [],
+              boxShadow: isSelected
+                  ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))]
+                  : [],
             ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, color: isSelected ? color : Colors.grey.shade400, size: 26),
-              const SizedBox(height: 6),
-              Text(t(cat, lang: lang),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
-                      color: isSelected ? color : Colors.grey.shade500)),
+            child: Stack(children: [
+              // AI badge
+              if (isAISuggested && !isSelected)
+                Positioned(
+                  top: 4, right: 4,
+                  child: Container(
+                    width: 14, height: 14,
+                    decoration: const BoxDecoration(color: Color(0xFF52B788), shape: BoxShape.circle),
+                    child: const Icon(Icons.auto_awesome, color: Colors.white, size: 8),
+                  ),
+                ),
+              Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, color: isSelected ? color : Colors.grey.shade400, size: 26),
+                const SizedBox(height: 6),
+                Text(t(cat, lang: lang),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? color : Colors.grey.shade500)),
+              ]),
             ]),
           ),
         );
@@ -463,7 +665,7 @@ class _CategoryGrid extends StatelessWidget {
   }
 }
 
-// ── Skeleton loader shown while submitting ─────────────────────────────────
+// ── Skeleton ───────────────────────────────────────────────────────────────
 
 class _ReportSkeleton extends StatefulWidget {
   const _ReportSkeleton();
@@ -472,30 +674,23 @@ class _ReportSkeleton extends StatefulWidget {
 }
 
 class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
-    _animation = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _anim = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
-  void dispose() { _controller.dispose(); super.dispose(); }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
-  Widget _bone({double height = 16, double? width, double radius = 8}) {
+  Widget _bone({double h = 16, double? w, double r = 8}) {
     return FadeTransition(
-      opacity: _animation,
-      child: Container(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-      ),
+      opacity: _anim,
+      child: Container(height: h, width: w, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(r))),
     );
   }
 
@@ -504,31 +699,31 @@ class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProvi
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _bone(height: 14, width: 100),
+        _bone(h: 14, w: 100),
         const SizedBox(height: 8),
-        _bone(height: 50, radius: 10),
+        _bone(h: 50, r: 10),
         const SizedBox(height: 20),
-        _bone(height: 14, width: 120),
+        _bone(h: 14, w: 120),
+        const SizedBox(height: 8),
+        _bone(h: 100, r: 10),
+        const SizedBox(height: 12),
+        _bone(h: 48, r: 12),
+        const SizedBox(height: 20),
+        _bone(h: 14, w: 120),
         const SizedBox(height: 8),
         Row(children: [
-          Expanded(child: _bone(height: 80, radius: 12)),
+          Expanded(child: _bone(h: 80, r: 12)),
           const SizedBox(width: 10),
-          Expanded(child: _bone(height: 80, radius: 12)),
+          Expanded(child: _bone(h: 80, r: 12)),
           const SizedBox(width: 10),
-          Expanded(child: _bone(height: 80, radius: 12)),
+          Expanded(child: _bone(h: 80, r: 12)),
           const SizedBox(width: 10),
-          Expanded(child: _bone(height: 80, radius: 12)),
+          Expanded(child: _bone(h: 80, r: 12)),
         ]),
         const SizedBox(height: 20),
-        _bone(height: 14, width: 100),
-        const SizedBox(height: 8),
-        _bone(height: 100, radius: 10),
+        _bone(h: 260, r: 16),
         const SizedBox(height: 20),
-        _bone(height: 14, width: 80),
-        const SizedBox(height: 8),
-        _bone(height: 260, radius: 16),
-        const SizedBox(height: 20),
-        _bone(height: 120, radius: 12),
+        _bone(h: 120, r: 12),
         const SizedBox(height: 32),
         Center(child: Column(children: [
           const CircularProgressIndicator(color: Color(0xFF2D6A4F)),
@@ -543,7 +738,15 @@ class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProvi
   }
 }
 
-// ── Confirm dialog summary row ─────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+  @override
+  Widget build(BuildContext context) =>
+      Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A)));
+}
 
 class _ConfirmRow extends StatelessWidget {
   final String label, value;
