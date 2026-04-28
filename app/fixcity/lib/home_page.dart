@@ -14,12 +14,16 @@ class _HomePageState extends State<HomePage> {
   User? _user;
 
   // Live data
-  int _totalReports = 0;
+  int _totalReports    = 0;
   int _resolvedReports = 0;
-  int _pendingReports = 0;
-  List<Map<String, dynamic>> _recentReports = [];
+  int _pendingReports  = 0;
+  int _catPothole  = 0;
+  int _catTrash    = 0;
+  int _catLighting = 0;
+  int _catSewage   = 0;
+  int _catWater    = 0;
+  int _catOther    = 0;
   bool _statsLoading = true;
-  bool _feedLoading = true;
 
   static const _green  = Color(0xFF2D6A4F);
   static const _greenLight = Color(0xFF52B788);
@@ -33,18 +37,22 @@ class _HomePageState extends State<HomePage> {
       if (mounted) setState(() => _user = data.session?.user);
     });
     _loadStats();
-    _loadRecentReports();
   }
 
   Future<void> _loadStats() async {
     try {
-      final all      = await _supabase.from('reports').select('id');
-      final resolved = await _supabase.from('reports').select('id').eq('status', 'resolved');
-      final pending  = await _supabase.from('reports').select('id').eq('status', 'pending');
+      final all      = await _supabase.from('reports').select('id, status, category');
+      final list     = (all as List).cast<Map<String, dynamic>>();
       if (mounted) setState(() {
-        _totalReports    = (all    as List).length;
-        _resolvedReports = (resolved as List).length;
-        _pendingReports  = (pending  as List).length;
+        _totalReports    = list.length;
+        _resolvedReports = list.where((r) => r['status'] == 'resolved').length;
+        _pendingReports  = list.where((r) => r['status'] == 'pending').length;
+        _catPothole      = list.where((r) => r['category'] == 'cat_pothole').length;
+        _catTrash        = list.where((r) => r['category'] == 'cat_trash').length;
+        _catLighting     = list.where((r) => r['category'] == 'cat_lighting').length;
+        _catSewage       = list.where((r) => r['category'] == 'cat_sewage').length;
+        _catWater        = list.where((r) => r['category'] == 'cat_water').length;
+        _catOther        = list.where((r) => r['category'] == 'cat_other').length;
         _statsLoading    = false;
       });
     } catch (_) {
@@ -52,25 +60,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _loadRecentReports() async {
-    try {
-      final data = await _supabase
-          .from('reports')
-          .select('title, category, status, created_at, report_code')
-          .order('created_at', ascending: false)
-          .limit(4);
-      if (mounted) setState(() {
-        _recentReports = (data as List).cast<Map<String, dynamic>>();
-        _feedLoading   = false;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _feedLoading = false);
-    }
-  }
-
   Future<void> _refresh() async {
-    setState(() { _statsLoading = true; _feedLoading = true; });
-    await Future.wait([_loadStats(), _loadRecentReports()]);
+    setState(() => _statsLoading = true);
+    await _loadStats();
   }
 
   void _logout() async {
@@ -224,69 +216,21 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 28),
 
-                  // ── Recent reports feed ────────────────────────────
-                  _SectionHeader(
-                    label: isAr ? 'أحدث البلاغات' : 'Latest Reports',
-                    actionLabel: isAr ? 'تتبع بلاغ' : 'Track one',
-                    onAction: () => Navigator.of(context).pushNamed('/track'),
-                  ),
+                  // ── Category breakdown ─────────────────────────────
+                  _SectionHeader(label: isAr ? 'البلاغات حسب النوع' : 'Reports by Category'),
                   const SizedBox(height: 12),
-
-                  if (_feedLoading)
-                    _FeedSkeleton()
-                  else if (_recentReports.isEmpty)
-                    _EmptyFeed(isAr: isAr)
-                  else
-                    ..._recentReports.map((r) {
-                      final status   = r['status'] as String? ?? 'pending';
-                      final category = r['category'] as String? ?? 'cat_other';
-                      final title    = r['title'] as String? ?? '';
-                      final code     = r['report_code'] as String? ?? '';
-                      final date     = DateTime.tryParse(r['created_at'] ?? '') ?? DateTime.now();
-                      final statusColor = _statusColor(status);
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.grey.shade100),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(_categoryIcon(category), color: statusColor, size: 22),
-                          ),
-                          title: Text(title,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy),
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            const SizedBox(height: 4),
-                            Row(children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(t(status, lang: lang),
-                                    style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w600)),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(code, style: TextStyle(fontSize: 10, color: Colors.grey.shade400, letterSpacing: 0.5)),
-                            ]),
-                            const SizedBox(height: 2),
-                            Text('${date.day}/${date.month}/${date.year}',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-                          ]),
-                        ),
-                      );
-                    }),
+                  _CategoryBreakdown(
+                    pothole:  _catPothole,
+                    trash:    _catTrash,
+                    lighting: _catLighting,
+                    sewage:   _catSewage,
+                    water:    _catWater,
+                    other:    _catOther,
+                    total:    _totalReports,
+                    loading:  _statsLoading,
+                    isAr:     isAr,
+                    lang:     lang,
+                  ),
 
                   const SizedBox(height: 32),
                 ]),
@@ -363,10 +307,12 @@ class _CategoryGrid extends StatelessWidget {
   const _CategoryGrid({required this.isAr, required this.lang});
 
   static const _cats = [
-    {'key': 'cat_pothole',  'icon': Icons.warning_amber_rounded,  'color': Color(0xFFF59E0B)},
-    {'key': 'cat_trash',    'icon': Icons.delete_outline,          'color': Color(0xFFEF4444)},
-    {'key': 'cat_lighting', 'icon': Icons.lightbulb_outline,       'color': Color(0xFF6366F1)},
-    {'key': 'cat_other',    'icon': Icons.more_horiz,              'color': Color(0xFF64748B)},
+    {'key': 'cat_pothole',  'icon': Icons.warning_amber_rounded, 'color': Color(0xFFF59E0B)},
+    {'key': 'cat_trash',    'icon': Icons.delete_outline,         'color': Color(0xFFEF4444)},
+    {'key': 'cat_lighting', 'icon': Icons.bolt_outlined,          'color': Color(0xFF6366F1)},
+    {'key': 'cat_sewage',   'icon': Icons.water_damage_outlined,  'color': Color(0xFF8B5CF6)},
+    {'key': 'cat_water',    'icon': Icons.water_drop_outlined,    'color': Color(0xFF0EA5E9)},
+    {'key': 'cat_other',    'icon': Icons.more_horiz,             'color': Color(0xFF64748B)},
   ];
 
   @override
@@ -430,73 +376,72 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ── Feed Empty State ───────────────────────────────────────────────────────
+// ── Category Breakdown ─────────────────────────────────────────────────────
 
-class _EmptyFeed extends StatelessWidget {
-  final bool isAr;
-  const _EmptyFeed({required this.isAr});
+class _CategoryBreakdown extends StatelessWidget {
+  final int pothole, trash, lighting, sewage, water, other, total;
+  final bool loading, isAr;
+  final String lang;
+  const _CategoryBreakdown({
+    required this.pothole, required this.trash, required this.lighting,
+    required this.sewage, required this.water, required this.other,
+    required this.total, required this.loading, required this.isAr, required this.lang,
+  });
+
+  static const _cats = [
+    {'key': 'cat_pothole',  'icon': Icons.warning_amber_rounded, 'color': Color(0xFFF59E0B)},
+    {'key': 'cat_trash',    'icon': Icons.delete_outline,         'color': Color(0xFFEF4444)},
+    {'key': 'cat_lighting', 'icon': Icons.bolt_outlined,          'color': Color(0xFF6366F1)},
+    {'key': 'cat_sewage',   'icon': Icons.water_damage_outlined,  'color': Color(0xFF8B5CF6)},
+    {'key': 'cat_water',    'icon': Icons.water_drop_outlined,    'color': Color(0xFF0EA5E9)},
+    {'key': 'cat_other',    'icon': Icons.more_horiz,             'color': Color(0xFF64748B)},
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final counts = [pothole, trash, lighting, sewage, water, other];
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Row(children: [
-        Icon(Icons.inbox_outlined, size: 28, color: Colors.grey.shade300),
-        const SizedBox(width: 14),
-        Text(isAr ? 'لا توجد بلاغات حتى الآن' : 'No reports yet — be the first!',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
-      ]),
-    );
-  }
-}
-
-// ── Feed Skeleton ──────────────────────────────────────────────────────────
-
-class _FeedSkeleton extends StatefulWidget {
-  @override
-  State<_FeedSkeleton> createState() => _FeedSkeletonState();
-}
-
-class _FeedSkeletonState extends State<_FeedSkeleton> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
-    _anim = Tween(begin: 0.4, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
-
-  Widget _bone({double h = 12, double? w, double r = 6}) {
-    return FadeTransition(
-      opacity: _anim,
-      child: Container(height: h, width: w, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(r))),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: List.generate(3, (_) => Container(
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-      child: Row(children: [
-        FadeTransition(opacity: _anim, child: Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)))),
-        const SizedBox(width: 14),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _bone(h: 14, w: 180),
-          const SizedBox(height: 8),
-          _bone(h: 10, w: 110),
-          const SizedBox(height: 4),
-          _bone(h: 10, w: 70),
-        ])),
-      ]),
-    )));
+      child: Column(children: List.generate(_cats.length, (i) {
+        final cat      = _cats[i];
+        final icon     = cat['icon']  as IconData;
+        final color    = cat['color'] as Color;
+        final key      = cat['key']   as String;
+        final count    = counts[i];
+        final fraction = total > 0 ? count / total : 0.0;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Row(children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text(t(key, lang: lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B1F3A))),
+                loading
+                    ? Container(width: 24, height: 10, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4)))
+                    : Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+              ]),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: loading ? null : fraction,
+                  minHeight: 6,
+                  backgroundColor: Colors.grey.shade100,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+            ])),
+          ]),
+        );
+      })),
+    );
   }
 }
 
@@ -505,6 +450,7 @@ class _FeedSkeletonState extends State<_FeedSkeleton> with SingleTickerProviderS
 class _TopBarBtn extends StatelessWidget {
   final String? label;
   final IconData? icon;
+
   final VoidCallback onTap;
   const _TopBarBtn({this.label, this.icon, required this.onTap});
 

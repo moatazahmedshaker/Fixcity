@@ -199,7 +199,11 @@ class _DetailPanel extends StatelessWidget {
                 initialZoom: 15.0,
               ),
               children: [
-                TileLayer(urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+                TileLayer(
+                  urlTemplate: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+                  subdomains: const ['a', 'b', 'c', 'd'],
+                  userAgentPackageName: 'com.fixcity.app',
+                ),
                 MarkerLayer(markers: [
                   Marker(
                     point: LatLng(problem.location.latitude, problem.location.longitude),

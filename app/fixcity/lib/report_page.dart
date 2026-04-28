@@ -33,7 +33,7 @@ class ReportPageState extends State<ReportPage> {
   // Anthropic API key — replace with your key or load from env
   static const _geminiKey = 'AIzaSyBbEvjMFSuIzk3uuy7ZO0kWBFjZIOtKT34';
 
-  final List<String> _categories = ['cat_pothole', 'cat_trash', 'cat_lighting', 'cat_other'];
+  final List<String> _categories = ['cat_pothole', 'cat_trash', 'cat_lighting', 'cat_sewage', 'cat_water', 'cat_other'];
   String? _selectedCategory;
   Uint8List? _selectedImageData;
   XFile?    _selectedImageFile;
@@ -54,20 +54,11 @@ class ReportPageState extends State<ReportPage> {
   // Keyword-based fallback — works offline, no API needed
   String _keywordClassify(String text) {
     final t = text.toLowerCase();
-
-    // Pothole keywords (Arabic + English)
-    if (RegExp(r'pothole|crack|road|pavement|asphalt|broken road|حفرة|طريق|رصيف|شقوق|تلف').hasMatch(t)) {
-      return 'cat_pothole';
-    }
-    // Trash keywords
-    if (RegExp(r'trash|garbage|waste|litter|dump|smell|dirty|قمامة|نفايات|زبالة|قذارة|روائح|نظافة').hasMatch(t)) {
-      return 'cat_trash';
-    }
-    // Lighting keywords
-    if (RegExp(r'light|lamp|dark|electricity|bulb|street light|إنارة|كهرباء|مصباح|ظلام|نور').hasMatch(t)) {
-      return 'cat_lighting';
-    }
-
+    if (RegExp(r'road|pothole|crack|pavement|asphalt|street damage|طريق|حفرة|رصيف|شقوق|تلف الطريق|مشاكل الطرق').hasMatch(t)) return 'cat_pothole';
+    if (RegExp(r'trash|garbage|waste|litter|dump|smell|dirty|قمامة|نفايات|زبالة|قذارة|روائح|نظافة|مشاكل النظافة').hasMatch(t)) return 'cat_trash';
+    if (RegExp(r'light|lamp|dark|electricity|power|bulb|إنارة|كهرباء|مصباح|ظلام|نور|تيار|مشاكل الكهرباء').hasMatch(t)) return 'cat_lighting';
+    if (RegExp(r'sewage|sewer|drain|overflow|smell|صرف|مجاري|بالوعة|فيضان|مشاكل الصرف').hasMatch(t)) return 'cat_sewage';
+    if (RegExp(r'water|pipe|leak|flood|مياه|ماء|تسريب|أنبوب|فيضان|مشاكل المياه').hasMatch(t)) return 'cat_water';
     return 'cat_other';
   }
 
@@ -469,8 +460,9 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                            subdomains: const ['a', 'b', 'c'],
+                            urlTemplate: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+                            subdomains: const ['a', 'b', 'c', 'd'],
+                            userAgentPackageName: 'com.fixcity.app',
                           ),
                           MarkerLayer(markers: [
                             Marker(
@@ -603,14 +595,16 @@ class _CategoryGrid extends StatelessWidget {
   static const _meta = {
     'cat_pothole':  {'icon': Icons.warning_amber_rounded,  'color': Color(0xFFF59E0B)},
     'cat_trash':    {'icon': Icons.delete_outline,          'color': Color(0xFFEF4444)},
-    'cat_lighting': {'icon': Icons.lightbulb_outline,       'color': Color(0xFF6366F1)},
+    'cat_lighting': {'icon': Icons.bolt_outlined,           'color': Color(0xFF6366F1)},
+    'cat_sewage':   {'icon': Icons.water_damage_outlined,   'color': Color(0xFF8B5CF6)},
+    'cat_water':    {'icon': Icons.water_drop_outlined,     'color': Color(0xFF0EA5E9)},
     'cat_other':    {'icon': Icons.more_horiz,              'color': Color(0xFF64748B)},
   };
 
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-      crossAxisCount: 4,
+      crossAxisCount: 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 10,
