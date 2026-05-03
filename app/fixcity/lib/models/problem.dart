@@ -21,6 +21,7 @@ class Problem {
   Problem({
     this.id,
     required this.reportCode,
+    this.data,
     required this.title,
     required this.category,
     required this.description,

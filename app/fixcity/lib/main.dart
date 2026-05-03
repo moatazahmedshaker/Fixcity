@@ -11,6 +11,9 @@ import 'my_reports_page.dart';
 import 'admin/admin_login_page.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'admin/report_details_page.dart';
+import 'governor/governor_login_page.dart';
+import 'governor/governor_dashboard_page.dart';
+import 'governor/governor_report_page.dart';
 
 const supabaseUrl = 'https://fxpdvgyeducxtucamfdj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4cGR2Z3llZHVjeHR1Y2FtZmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5MzQ4ODUsImV4cCI6MjA3NzUxMDg4NX0.RVQHkXLg3-xYROsvc9wwJe6zqFa0EDsO1qqTL_jJPLU';
@@ -99,11 +102,17 @@ class MyApp extends StatelessWidget {
             '/my_reports': (context) => const MyReportsPage(),
             '/admin': (context) => const AdminLoginPage(),
             '/admin/dashboard': (context) => const AdminDashboardPage(),
+            '/governor': (context) => const GovernorLoginPage(),
+            '/governor/dashboard': (context) => const GovernorDashboardPage(),
           },
           onGenerateRoute: (settings) {
             if (settings.name != null && settings.name!.startsWith('/admin/report/')) {
               final reportId = settings.name!.split('/').last;
               return MaterialPageRoute(builder: (context) => ReportDetailsPage(reportId: reportId));
+            }
+            if (settings.name != null && settings.name!.startsWith('/governor/report/')) {
+              final reportId = settings.name!.split('/').last;
+              return MaterialPageRoute(builder: (context) => GovernorReportPage(reportId: reportId));
             }
             return null;
           },

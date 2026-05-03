@@ -221,12 +221,44 @@ class _ResultView extends StatelessWidget {
           ]),
         ),
 
-        // Photo
+        // Before photo
         if (problem.photoUrl != null) ...[
           const SizedBox(height: 16),
+          Text(isAr ? 'صورة المشكلة (قبل)' : 'Problem Photo (Before)',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.network(problem.photoUrl!, width: double.infinity, height: 200, fit: BoxFit.cover),
+          ),
+        ],
+
+        // After fix photo
+        if ((problem.data?['fix_photo_url'] ?? '').toString().isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D6A4F).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.check_circle, color: Color(0xFF2D6A4F), size: 16),
+              const SizedBox(width: 6),
+              Text(isAr ? 'تم الإصلاح' : 'Issue Fixed',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF2D6A4F))),
+            ]),
+          ),
+          const SizedBox(height: 8),
+          Text(isAr ? 'صورة بعد الإصلاح' : 'After Fix Photo',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(
+              problem.data!['fix_photo_url'].toString(),
+              width: double.infinity, height: 200, fit: BoxFit.cover,
+            ),
           ),
         ],
 
