@@ -13,6 +13,29 @@ import 'login_page.dart';
 import 'translations.dart';
 import 'main.dart';
 
+// ── District model ─────────────────────────────────────────────────────────
+
+class District {
+  final String nameAr;
+  final String nameEn;
+  final String governorName;
+  final String governorPhone;
+  const District({required this.nameAr, required this.nameEn, required this.governorName, required this.governorPhone});
+}
+
+const List<District> kDistricts = [
+  District(nameAr: 'حي النزهة',       nameEn: 'Al Nuzha',       governorName: 'م. أحمد السيد',    governorPhone: '0100-000-0001'),
+  District(nameAr: 'حي المعادي',      nameEn: 'Maadi',          governorName: 'م. خالد محمود',   governorPhone: '0100-000-0002'),
+  District(nameAr: 'حي مصر الجديدة', nameEn: 'Heliopolis',     governorName: 'م. طارق علي',     governorPhone: '0100-000-0003'),
+  District(nameAr: 'حي الزيتون',      nameEn: 'Al Zeitoun',     governorName: 'م. محمد حسن',     governorPhone: '0100-000-0004'),
+  District(nameAr: 'حي عين شمس',      nameEn: 'Ain Shams',      governorName: 'م. عمرو إبراهيم', governorPhone: '0100-000-0005'),
+  District(nameAr: 'حي التجمع الأول', nameEn: 'First Settlement',governorName: 'م. سامي رضا',    governorPhone: '0100-000-0006'),
+  District(nameAr: 'حي بدر',          nameEn: 'Badr',            governorName: 'م. يوسف فاروق',  governorPhone: '0100-000-0007'),
+  District(nameAr: 'حي الشروق',       nameEn: 'Al Shorouk',     governorName: 'م. هاني كمال',    governorPhone: '0100-000-0008'),
+];
+
+// ── Page ───────────────────────────────────────────────────────────────────
+
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
   @override
@@ -22,26 +45,24 @@ class ReportPage extends StatefulWidget {
 class ReportPageState extends State<ReportPage> {
   final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _mapController = MapController();
 
-  static const _green  = Color(0xFF2D6A4F);
+  static const _green      = Color(0xFF2D6A4F);
   static const _greenLight = Color(0xFF52B788);
-  static const _navy   = Color(0xFF0B1F3A);
-
-  // Anthropic API key — replace with your key or load from env
-  static const _geminiKey = 'AIzaSyBbEvjMFSuIzk3uuy7ZO0kWBFjZIOtKT34';
+  static const _navy       = Color(0xFF0B1F3A);
+  static const _geminiKey  = 'AIzaSyBbEvjMFSuIzk3uuy7ZO0kWBFjZIOtKT34';
 
   final List<String> _categories = ['cat_pothole', 'cat_trash', 'cat_lighting', 'cat_sewage', 'cat_water', 'cat_other'];
-  String? _selectedCategory;
+  String?   _selectedCategory;
+  District? _selectedDistrict;
   Uint8List? _selectedImageData;
-  XFile?    _selectedImageFile;
+  XFile?     _selectedImageFile;
   LatLng _selectedLocation = const LatLng(30.0444, 31.2357);
   bool _isLoading       = false;
   bool _locationLoading = false;
   bool _aiLoading       = false;
-  String? _aiSuggestion; // stores the suggested category key
+  String? _aiSuggestion;
 
   @override
   void initState() {
@@ -49,16 +70,15 @@ class ReportPageState extends State<ReportPage> {
     _getCurrentLocation();
   }
 
-  // ── AI Classification ────────────────────────────────────────────────────
+  // ── AI Classification ─────────────────────────────────────────────────────
 
-  // Keyword-based fallback — works offline, no API needed
   String _keywordClassify(String text) {
     final t = text.toLowerCase();
     if (RegExp(r'road|pothole|crack|pavement|asphalt|street damage|طريق|حفرة|رصيف|شقوق|تلف الطريق|مشاكل الطرق').hasMatch(t)) return 'cat_pothole';
     if (RegExp(r'trash|garbage|waste|litter|dump|smell|dirty|قمامة|نفايات|زبالة|قذارة|روائح|نظافة|مشاكل النظافة').hasMatch(t)) return 'cat_trash';
     if (RegExp(r'light|lamp|dark|electricity|power|bulb|إنارة|كهرباء|مصباح|ظلام|نور|تيار|مشاكل الكهرباء').hasMatch(t)) return 'cat_lighting';
-    if (RegExp(r'sewage|sewer|drain|overflow|smell|صرف|مجاري|بالوعة|فيضان|مشاكل الصرف').hasMatch(t)) return 'cat_sewage';
-    if (RegExp(r'water|pipe|leak|flood|مياه|ماء|تسريب|أنبوب|فيضان|مشاكل المياه').hasMatch(t)) return 'cat_water';
+    if (RegExp(r'sewage|sewer|drain|overflow|مجاري|بالوعة|فيضان|مشاكل الصرف').hasMatch(t)) return 'cat_sewage';
+    if (RegExp(r'water|pipe|leak|flood|مياه|ماء|تسريب|أنبوب|مشاكل المياه').hasMatch(t)) return 'cat_water';
     return 'cat_other';
   }
 
@@ -66,10 +86,8 @@ class ReportPageState extends State<ReportPage> {
     final lang        = appLocale.value.languageCode;
     final isAr        = lang == 'ar';
     final description = _descriptionController.text.trim();
-    final title       = _titleController.text.trim();
-    final combined    = '$title $description';
 
-    if (description.isEmpty && title.isEmpty) {
+    if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(isAr ? 'اكتب وصف المشكلة أولاً' : 'Write a description first'),
         backgroundColor: Colors.orange.shade700,
@@ -80,23 +98,21 @@ class ReportPageState extends State<ReportPage> {
     }
 
     setState(() => _aiLoading = true);
-
     String matched = 'cat_other';
-    bool usedAI    = false;
 
-    // Try Gemini first
     try {
       final prompt = '''
-You are a municipal issue classifier. Based on the following report, classify it into ONE of these categories:
+You are a municipal issue classifier. Classify this report into ONE category:
 - cat_pothole: road damage, potholes, cracks, broken pavement
-- cat_trash: garbage, waste, littering, dump, smell, cleanliness
+- cat_trash: garbage, waste, littering, dump, cleanliness
 - cat_lighting: street lights, lamp, electricity, dark roads
+- cat_sewage: sewage, drain, overflow
+- cat_water: water pipe, leak, flood
 - cat_other: anything else
 
-Report title: "$title"
-Report description: "$description"
+Report: "$description"
 
-Respond with ONLY the category key, nothing else. Example: cat_pothole
+Respond with ONLY the category key. Example: cat_pothole
 ''';
 
       final response = await http.post(
@@ -114,14 +130,11 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
         for (final cat in _categories) {
           if (rawText.contains(cat)) { matched = cat; break; }
         }
-        usedAI = true;
       } else {
-        // API failed — use keyword fallback silently
-        matched = _keywordClassify(combined);
+        matched = _keywordClassify(description);
       }
     } catch (_) {
-      // CORS, network error, timeout — use keyword fallback silently
-      matched = _keywordClassify(combined);
+      matched = _keywordClassify(description);
     }
 
     if (mounted) {
@@ -134,11 +147,9 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
         content: Row(children: [
           const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(isAr
-                ? 'اقتراح الذكاء الاصطناعي: ${t(matched, lang: lang)}'
-                : 'AI suggested: ${t(matched, lang: lang)}'),
-          ),
+          Expanded(child: Text(isAr
+              ? 'اقتراح الذكاء الاصطناعي: ${t(matched, lang: lang)}'
+              : 'AI suggested: ${t(matched, lang: lang)}')),
         ]),
         backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
@@ -147,7 +158,7 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
     }
   }
 
-  // ── Image & Location ─────────────────────────────────────────────────────
+  // ── Image & Location ──────────────────────────────────────────────────────
 
   Future<void> _pickImage() async {
     final picker     = ImagePicker();
@@ -170,7 +181,7 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
         if (permission == LocationPermission.denied) return;
       }
       if (permission == LocationPermission.deniedForever) return;
-      Position position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition();
       setState(() {
         _selectedLocation = LatLng(position.latitude, position.longitude);
         _mapController.move(_selectedLocation, 15.0);
@@ -180,12 +191,13 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
     }
   }
 
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
 
   Future<void> _submitReport() async {
     final lang = appLocale.value.languageCode;
     final isAr = lang == 'ar';
     if (!_formKey.currentState!.validate()) return;
+
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(isAr ? 'الرجاء اختيار فئة' : 'Please select a category'),
@@ -195,9 +207,18 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
       ));
       return;
     }
+    if (_selectedDistrict == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isAr ? 'الرجاء اختيار الحي' : 'Please select a district'),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+      return;
+    }
     if (_selectedImageData == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(t('fill_fields_error', lang: lang)),
+        content: Text(isAr ? 'الرجاء إرفاق صورة' : 'Please attach a photo'),
         backgroundColor: Colors.red.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -233,8 +254,8 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(10)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _ConfirmRow(label: isAr ? 'العنوان' : 'Title',    value: _titleController.text),
                 _ConfirmRow(label: isAr ? 'الفئة'   : 'Category', value: t(_selectedCategory!, lang: lang)),
+                _ConfirmRow(label: isAr ? 'الحي'    : 'District',  value: isAr ? _selectedDistrict!.nameAr : _selectedDistrict!.nameEn),
               ]),
             ),
             const SizedBox(height: 20),
@@ -275,22 +296,25 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
     setState(() => _isLoading = true);
 
     try {
-      String reportCode = randomAlphaNumeric(10).toUpperCase();
-      String fileName   = 'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final reportCode = randomAlphaNumeric(10).toUpperCase();
+      final fileName   = 'reports/$reportCode/${DateTime.now().millisecondsSinceEpoch}.jpg';
       await supabase.storage.from('files').uploadBinary(fileName, _selectedImageData!,
           fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'));
-      String photoUrl = supabase.storage.from('files').getPublicUrl(fileName);
+      final photoUrl = supabase.storage.from('files').getPublicUrl(fileName);
       await supabase.from('reports').insert({
-        'report_code': reportCode,
-        'title':       _titleController.text,
-        'category':    _selectedCategory!,
-        'description': _descriptionController.text,
-        'photo_url':   photoUrl,
-        'latitude':    _selectedLocation.latitude,
-        'longitude':   _selectedLocation.longitude,
-        'status':      'pending',
-        'created_at':  DateTime.now().toIso8601String(),
-        'user_id':     supabase.auth.currentUser?.id,
+        'report_code':     reportCode,
+        'title':           isAr ? _selectedDistrict!.nameAr : _selectedDistrict!.nameEn,
+        'category':        _selectedCategory!,
+        'description':     _descriptionController.text,
+        'photo_url':       photoUrl,
+        'latitude':        _selectedLocation.latitude,
+        'longitude':       _selectedLocation.longitude,
+        'status':          'pending',
+        'created_at':      DateTime.now().toIso8601String(),
+        'user_id':         supabase.auth.currentUser?.id,
+        'district':        _selectedDistrict!.nameAr,
+        'governor_name':   _selectedDistrict!.governorName,
+        'governor_phone':  _selectedDistrict!.governorPhone,
       });
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -366,7 +390,7 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
     );
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -391,18 +415,7 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                 key: _formKey,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                  // ── Title ──────────────────────────────────────────
-                  _SectionLabel(label: t('problem_title', lang: lang)),
-                  const SizedBox(height: 8),
-                  FixField(
-                    controller: _titleController,
-                    label: '',
-                    hint: isAr ? 'مثال: حفرة في الطريق الرئيسي' : 'e.g. Large pothole on main road',
-                    icon: Icons.title_outlined,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Description ────────────────────────────────────
+                  // ── 1. Description ─────────────────────────────────
                   _SectionLabel(label: t('problem_desc', lang: lang)),
                   const SizedBox(height: 8),
                   FixField(
@@ -414,15 +427,11 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                   ),
                   const SizedBox(height: 12),
 
-                  // ── AI Classify Button ─────────────────────────────
-                  _AIClassifyButton(
-                    isLoading: _aiLoading,
-                    isAr: isAr,
-                    onTap: _classifyWithAI,
-                  ),
+                  // AI button
+                  _AIClassifyButton(isLoading: _aiLoading, isAr: isAr, onTap: _classifyWithAI),
                   const SizedBox(height: 20),
 
-                  // ── Category Grid ──────────────────────────────────
+                  // Category grid
                   _SectionLabel(label: t('select_category', lang: lang)),
                   const SizedBox(height: 8),
                   _CategoryGrid(
@@ -432,9 +441,60 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                     lang: lang,
                     onSelect: (val) => setState(() => _selectedCategory = val),
                   ),
+                  const SizedBox(height: 24),
+
+                  // ── 2. District ────────────────────────────────────
+                  _SectionLabel(label: isAr ? 'اسم الحي' : 'District'),
+                  const SizedBox(height: 8),
+                  _DistrictDropdown(
+                    selected: _selectedDistrict,
+                    isAr: isAr,
+                    onSelect: (d) => setState(() => _selectedDistrict = d),
+                  ),
                   const SizedBox(height: 20),
 
-                  // ── Location ───────────────────────────────────────
+                  // ── 3. Photo ───────────────────────────────────────
+                  _SectionLabel(label: isAr ? 'إرفاق صورة' : 'Attach Photo'),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: _selectedImageData != null ? null : 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _selectedImageData != null ? _green : Colors.grey.shade300,
+                          width: _selectedImageData != null ? 2 : 1.5,
+                        ),
+                      ),
+                      child: _selectedImageData != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(11),
+                              child: Stack(children: [
+                                Image.memory(_selectedImageData!, width: double.infinity, fit: BoxFit.cover),
+                                Positioned(
+                                  top: 8, right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
+                                    child: const Icon(Icons.check, color: Colors.white, size: 14),
+                                  ),
+                                ),
+                              ]),
+                            )
+                          : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                              Icon(Icons.add_photo_alternate_outlined, size: 36, color: Colors.grey.shade300),
+                              const SizedBox(height: 8),
+                              Text(isAr ? 'انقر لاختيار صورة' : 'Tap to choose a photo',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
+                            ]),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── 4. Location ────────────────────────────────────
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     _SectionLabel(label: t('location_title', lang: lang)),
                     TextButton.icon(
@@ -481,49 +541,8 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      isAr ? 'اضغط على الخريطة لتحديد الموقع بدقة' : 'Tap on the map to pinpoint the exact location',
+                      isAr ? 'اضغط على الخريطة لتحديد الموقع بدقة' : 'Tap the map to pinpoint the exact location',
                       style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Photo ──────────────────────────────────────────
-                  _SectionLabel(label: isAr ? 'إرفاق صورة' : 'Attach Photo'),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      height: _selectedImageData != null ? null : 120,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _selectedImageData != null ? _green : Colors.grey.shade300,
-                          width: _selectedImageData != null ? 2 : 1.5,
-                        ),
-                      ),
-                      child: _selectedImageData != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(11),
-                              child: Stack(children: [
-                                Image.memory(_selectedImageData!, width: double.infinity, fit: BoxFit.cover),
-                                Positioned(
-                                  top: 8, right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(color: _green, shape: BoxShape.circle),
-                                    child: const Icon(Icons.check, color: Colors.white, size: 14),
-                                  ),
-                                ),
-                              ]),
-                            )
-                          : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                              Icon(Icons.add_photo_alternate_outlined, size: 36, color: Colors.grey.shade300),
-                              const SizedBox(height: 8),
-                              Text(isAr ? 'انقر لاختيار صورة' : 'Tap to choose a photo',
-                                  style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
-                            ]),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -534,6 +553,93 @@ Respond with ONLY the category key, nothing else. Example: cat_pothole
                 ]),
               ),
             ),
+    );
+  }
+}
+
+// ── District Dropdown ──────────────────────────────────────────────────────
+
+class _DistrictDropdown extends StatelessWidget {
+  final District? selected;
+  final bool isAr;
+  final ValueChanged<District> onSelect;
+  const _DistrictDropdown({required this.selected, required this.isAr, required this.onSelect});
+
+  static const _green = Color(0xFF2D6A4F);
+  static const _navy  = Color(0xFF0B1F3A);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: selected != null ? _green : Colors.grey.shade300, width: selected != null ? 2 : 1.5),
+      ),
+      child: Column(
+        children: [
+          // Dropdown button
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              leading: const Icon(Icons.location_city_outlined, color: _green, size: 22),
+              title: Text(
+                selected != null
+                    ? (isAr ? selected!.nameAr : selected!.nameEn)
+                    : (isAr ? 'اختر الحي' : 'Select a district'),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: selected != null ? FontWeight.w600 : FontWeight.w400,
+                  color: selected != null ? _navy : Colors.grey.shade500,
+                ),
+              ),
+              children: kDistricts.map((d) {
+                final isSelected = selected == d;
+                return InkWell(
+                  onTap: () => onSelect(d),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? _green.withOpacity(0.06) : Colors.transparent,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(
+                              isAr ? d.nameAr : d.nameEn,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected ? _green : _navy,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Row(children: [
+                              Icon(Icons.person_outline, size: 12, color: Colors.grey.shade500),
+                              const SizedBox(width: 4),
+                              Text(d.governorName,
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                              const SizedBox(width: 12),
+                              Icon(Icons.phone_outlined, size: 12, color: Colors.grey.shade500),
+                              const SizedBox(width: 4),
+                              Text(d.governorPhone,
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                            ]),
+                          ]),
+                        ),
+                        if (isSelected)
+                          const Icon(Icons.check_circle, color: _green, size: 18),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -555,18 +661,13 @@ class _AIClassifyButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0B1F3A), Color(0xFF1A3A5C)],
-          ),
+          gradient: const LinearGradient(colors: [Color(0xFF0B1F3A), Color(0xFF1A3A5C)]),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [BoxShadow(color: const Color(0xFF0B1F3A).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           if (isLoading)
-            const SizedBox(
-              width: 16, height: 16,
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-            )
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
           else
             const Icon(Icons.auto_awesome, color: Color(0xFF52B788), size: 18),
           const SizedBox(width: 10),
@@ -593,12 +694,12 @@ class _CategoryGrid extends StatelessWidget {
   const _CategoryGrid({required this.categories, required this.selected, required this.aiSuggestion, required this.lang, required this.onSelect});
 
   static const _meta = {
-    'cat_pothole':  {'icon': Icons.warning_amber_rounded,  'color': Color(0xFFF59E0B)},
-    'cat_trash':    {'icon': Icons.delete_outline,          'color': Color(0xFFEF4444)},
-    'cat_lighting': {'icon': Icons.bolt_outlined,           'color': Color(0xFF6366F1)},
-    'cat_sewage':   {'icon': Icons.water_damage_outlined,   'color': Color(0xFF8B5CF6)},
-    'cat_water':    {'icon': Icons.water_drop_outlined,     'color': Color(0xFF0EA5E9)},
-    'cat_other':    {'icon': Icons.more_horiz,              'color': Color(0xFF64748B)},
+    'cat_pothole':  {'icon': Icons.warning_amber_rounded, 'color': Color(0xFFF59E0B)},
+    'cat_trash':    {'icon': Icons.delete_outline,         'color': Color(0xFFEF4444)},
+    'cat_lighting': {'icon': Icons.bolt_outlined,          'color': Color(0xFF6366F1)},
+    'cat_sewage':   {'icon': Icons.water_damage_outlined,  'color': Color(0xFF8B5CF6)},
+    'cat_water':    {'icon': Icons.water_drop_outlined,    'color': Color(0xFF0EA5E9)},
+    'cat_other':    {'icon': Icons.more_horiz,             'color': Color(0xFF64748B)},
   };
 
   @override
@@ -610,7 +711,7 @@ class _CategoryGrid extends StatelessWidget {
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
       children: categories.map((cat) {
-        final isSelected   = selected == cat;
+        final isSelected    = selected == cat;
         final isAISuggested = aiSuggestion == cat;
         final icon  = _meta[cat]?['icon']  as IconData? ?? Icons.help_outline;
         final color = _meta[cat]?['color'] as Color?    ?? Colors.grey;
@@ -624,14 +725,13 @@ class _CategoryGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected ? color : (isAISuggested ? const Color(0xFF52B788) : Colors.grey.shade200),
-                width: isSelected ? 2 : (isAISuggested ? 1.5 : 1.5),
+                width: isSelected ? 2 : 1.5,
               ),
               boxShadow: isSelected
                   ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))]
                   : [],
             ),
             child: Stack(children: [
-              // AI badge
               if (isAISuggested && !isSelected)
                 Positioned(
                   top: 4, right: 4,
@@ -641,16 +741,22 @@ class _CategoryGrid extends StatelessWidget {
                     child: const Icon(Icons.auto_awesome, color: Colors.white, size: 8),
                   ),
                 ),
-              Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(icon, color: isSelected ? color : Colors.grey.shade400, size: 26),
-                const SizedBox(height: 6),
-                Text(t(cat, lang: lang),
+              // Centered icon + label
+              Center(
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(icon, color: isSelected ? color : Colors.grey.shade400, size: 26),
+                  const SizedBox(height: 6),
+                  Text(
+                    t(cat, lang: lang),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? color : Colors.grey.shade500)),
-              ]),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? color : Colors.grey.shade500,
+                    ),
+                  ),
+                ]),
+              ),
             ]),
           ),
         );
@@ -693,10 +799,6 @@ class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProvi
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _bone(h: 14, w: 100),
-        const SizedBox(height: 8),
-        _bone(h: 50, r: 10),
-        const SizedBox(height: 20),
         _bone(h: 14, w: 120),
         const SizedBox(height: 8),
         _bone(h: 100, r: 10),
@@ -705,19 +807,20 @@ class _ReportSkeletonState extends State<_ReportSkeleton> with SingleTickerProvi
         const SizedBox(height: 20),
         _bone(h: 14, w: 120),
         const SizedBox(height: 8),
-        Row(children: [
-          Expanded(child: _bone(h: 80, r: 12)),
-          const SizedBox(width: 10),
-          Expanded(child: _bone(h: 80, r: 12)),
-          const SizedBox(width: 10),
-          Expanded(child: _bone(h: 80, r: 12)),
-          const SizedBox(width: 10),
-          Expanded(child: _bone(h: 80, r: 12)),
-        ]),
+        Row(children: List.generate(3, (_) => Expanded(child: Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: _bone(h: 80, r: 12),
+        )))),
+        const SizedBox(height: 20),
+        _bone(h: 14, w: 100),
+        const SizedBox(height: 8),
+        _bone(h: 60, r: 12),
+        const SizedBox(height: 20),
+        _bone(h: 14, w: 100),
+        const SizedBox(height: 8),
+        _bone(h: 120, r: 12),
         const SizedBox(height: 20),
         _bone(h: 260, r: 16),
-        const SizedBox(height: 20),
-        _bone(h: 120, r: 12),
         const SizedBox(height: 32),
         Center(child: Column(children: [
           const CircularProgressIndicator(color: Color(0xFF2D6A4F)),
