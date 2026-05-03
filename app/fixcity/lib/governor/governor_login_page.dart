@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../main.dart';
 
 class GovernorLoginPage extends StatefulWidget {
   const GovernorLoginPage({super.key});
@@ -36,8 +37,8 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
       if (profile['is_governor'] != true) {
         await supabase.auth.signOut();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('هذا الحساب ليس حساب رئيس حي'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(appLocale.value.languageCode == 'ar' ? 'هذا الحساب ليس حساب رئيس حي' : 'This account is not a governor account'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ));
@@ -73,9 +74,9 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                 child: const Icon(Icons.location_city, color: _green, size: 36),
               ),
               const SizedBox(height: 16),
-              const Text('بوابة رئيس الحي', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text(appLocale.value.languageCode == 'ar' ? 'بوابة رئيس الحي' : 'Governor Portal', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
               const SizedBox(height: 6),
-              Text('تسجيل الدخول لإدارة بلاغات حيّك',
+              Text(appLocale.value.languageCode == 'ar' ? 'تسجيل الدخول لإدارة بلاغات حيّك' : 'Login to manage your district reports',
                   style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.6))),
             ]),
           ),
@@ -92,7 +93,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                    labelText: appLocale.value.languageCode == 'ar' ? 'البريد الإلكتروني' : 'Email',
                     prefixIcon: const Icon(Icons.email_outlined, color: _green),
                     filled: true, fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -105,7 +106,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                   controller: _passCtrl,
                   obscureText: _obscure,
                   decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
+                    labelText: appLocale.value.languageCode == 'ar' ? 'كلمة المرور' : 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined, color: _green),
                     suffixIcon: IconButton(
                       icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
@@ -129,13 +130,13 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                     ),
                     child: _loading
                         ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('دخول', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                        : Text(appLocale.value.languageCode == 'ar' ? 'دخول' : 'Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.of(context).pushReplacementNamed('/admin'),
-                  child: Text('تسجيل دخول الإدارة', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                  child: Text(appLocale.value.languageCode == 'ar' ? 'تسجيل دخول الإدارة' : 'Admin Login', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
                 ),
               ]),
             ),

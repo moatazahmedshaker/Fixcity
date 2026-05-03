@@ -37,7 +37,8 @@ const List<District> kDistricts = [
 // ── Page ───────────────────────────────────────────────────────────────────
 
 class ReportPage extends StatefulWidget {
-  const ReportPage({super.key});
+  final String? initialCategory;
+  const ReportPage({super.key, this.initialCategory});
   @override
   ReportPageState createState() => ReportPageState();
 }
@@ -68,6 +69,20 @@ class ReportPageState extends State<ReportPage> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+    // Pre-select category if passed from home grid
+    if (widget.initialCategory != null) {
+      _selectedCategory = widget.initialCategory;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Also check route arguments (when pushed via pushNamed with arguments)
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String && _selectedCategory == null) {
+      setState(() => _selectedCategory = args);
+    }
   }
 
   // ── AI Classification ─────────────────────────────────────────────────────
@@ -161,8 +176,69 @@ Respond with ONLY the category key. Example: cat_pothole
   // ── Image & Location ──────────────────────────────────────────────────────
 
   Future<void> _pickImage() async {
+    final lang = appLocale.value.languageCode;
+    final isAr = lang == 'ar';
+    // Show camera vs gallery choice
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          Text(isAr ? 'اختر مصدر الصورة' : 'Choose photo source',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D6A4F).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(children: [
+                    const Icon(Icons.camera_alt_outlined, color: Color(0xFF2D6A4F), size: 32),
+                    const SizedBox(height: 8),
+                    Text(isAr ? 'الكاميرا' : 'Camera',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2D6A4F))),
+                  ]),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B1F3A).withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(children: [
+                    Icon(Icons.photo_library_outlined, color: Colors.grey.shade600, size: 32),
+                    const SizedBox(height: 8),
+                    Text(isAr ? 'المعرض' : 'Gallery',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+                  ]),
+                ),
+              ),
+            ),
+          ]),
+        ]),
+      ),
+    );
+    if (source == null) return;
     final picker     = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 85);
     if (pickedFile != null) {
       _selectedImageFile = pickedFile;
       _selectedImageData = await pickedFile.readAsBytes();
@@ -568,77 +644,123 @@ class _DistrictDropdown extends StatelessWidget {
   static const _green = Color(0xFF2D6A4F);
   static const _navy  = Color(0xFF0B1F3A);
 
+  void _showPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          child: Column(children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40, height: 4,
+              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: Row(children: [
+                const Icon(Icons.location_city_outlined, color: _green, size: 20),
+                const SizedBox(width: 10),
+                Text(isAr ? 'اختر الحي' : 'Select a District',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy)),
+              ]),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                itemCount: kDistricts.length,
+                separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100, indent: 20, endIndent: 20),
+                itemBuilder: (_, i) {
+                  final d = kDistricts[i];
+                  final isSelected = selected == d;
+                  return InkWell(
+                    onTap: () {
+                      onSelect(d);
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      color: isSelected ? _green.withOpacity(0.05) : Colors.transparent,
+                      child: Row(children: [
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(isAr ? d.nameAr : d.nameEn,
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                                  color: isSelected ? _green : _navy)),
+                          const SizedBox(height: 4),
+                          Row(children: [
+                            Icon(Icons.person_outline, size: 12, color: Colors.grey.shade400),
+                            const SizedBox(width: 4),
+                            Text(d.governorName, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                            const SizedBox(width: 12),
+                            Icon(Icons.phone_outlined, size: 12, color: Colors.grey.shade400),
+                            const SizedBox(width: 4),
+                            Text(d.governorPhone, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                          ]),
+                        ])),
+                        if (isSelected)
+                          const Icon(Icons.check_circle, color: _green, size: 20),
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: selected != null ? _green : Colors.grey.shade300, width: selected != null ? 2 : 1.5),
-      ),
-      child: Column(
-        children: [
-          // Dropdown button
-          Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              leading: const Icon(Icons.location_city_outlined, color: _green, size: 22),
-              title: Text(
-                selected != null
-                    ? (isAr ? selected!.nameAr : selected!.nameEn)
-                    : (isAr ? 'اختر الحي' : 'Select a district'),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: selected != null ? FontWeight.w600 : FontWeight.w400,
-                  color: selected != null ? _navy : Colors.grey.shade500,
-                ),
-              ),
-              children: kDistricts.map((d) {
-                final isSelected = selected == d;
-                return InkWell(
-                  onTap: () => onSelect(d),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected ? _green.withOpacity(0.06) : Colors.transparent,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(
-                              isAr ? d.nameAr : d.nameEn,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected ? _green : _navy,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Row(children: [
-                              Icon(Icons.person_outline, size: 12, color: Colors.grey.shade500),
-                              const SizedBox(width: 4),
-                              Text(d.governorName,
-                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                              const SizedBox(width: 12),
-                              Icon(Icons.phone_outlined, size: 12, color: Colors.grey.shade500),
-                              const SizedBox(width: 4),
-                              Text(d.governorPhone,
-                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                            ]),
-                          ]),
-                        ),
-                        if (isSelected)
-                          const Icon(Icons.check_circle, color: _green, size: 18),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+    return GestureDetector(
+      onTap: () => _showPicker(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected != null ? _green : Colors.grey.shade300,
+            width: selected != null ? 2 : 1.5,
           ),
-        ],
+        ),
+        child: Row(children: [
+          Icon(Icons.location_city_outlined, color: selected != null ? _green : Colors.grey.shade400, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: selected != null
+                ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(isAr ? selected!.nameAr : selected!.nameEn,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _navy)),
+                    const SizedBox(height: 3),
+                    Row(children: [
+                      Icon(Icons.person_outline, size: 11, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Text(selected!.governorName, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                      const SizedBox(width: 10),
+                      Icon(Icons.phone_outlined, size: 11, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Text(selected!.governorPhone, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                    ]),
+                  ])
+                : Text(isAr ? 'اختر الحي' : 'Select a district',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+          ),
+          Icon(Icons.keyboard_arrow_down_rounded,
+              color: selected != null ? _green : Colors.grey.shade400, size: 22),
+        ]),
       ),
     );
   }

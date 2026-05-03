@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/problem.dart';
 import 'translations.dart';
 import 'main.dart';
+import 'login_page.dart';
 
 class MyReportsPage extends StatefulWidget {
   const MyReportsPage({super.key});
@@ -14,7 +15,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
   final _supabase = Supabase.instance.client;
 
   static const _green = Color(0xFF2D6A4F);
-  static const _navy = Color(0xFF0B1F3A);
+  static const _navy  = Color(0xFF0B1F3A);
 
   Future<List<Map<String, dynamic>>> _fetchMyReports() async {
     final user = _supabase.auth.currentUser;
@@ -27,8 +28,8 @@ class _MyReportsPageState extends State<MyReportsPage> {
     return response.cast<Map<String, dynamic>>();
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
+  Color _statusColor(String s) {
+    switch (s) {
       case 'pending':     return const Color(0xFFF59E0B);
       case 'in_progress': return const Color(0xFF1A56DB);
       case 'resolved':    return _green;
@@ -36,8 +37,8 @@ class _MyReportsPageState extends State<MyReportsPage> {
     }
   }
 
-  IconData _statusIcon(String status) {
-    switch (status) {
+  IconData _statusIcon(String s) {
+    switch (s) {
       case 'pending':     return Icons.schedule_outlined;
       case 'in_progress': return Icons.construction_outlined;
       case 'resolved':    return Icons.check_circle_outline;
@@ -50,16 +51,64 @@ class _MyReportsPageState extends State<MyReportsPage> {
     final lang = appLocale.value.languageCode;
     final isAr = lang == 'ar';
 
+    // ── Login guard ─────────────────────────────────────────────────────
+    if (_supabase.auth.currentUser == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        appBar: AppBar(
+          backgroundColor: _navy,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: Text(t('my_reports', lang: lang),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                width: 90, height: 90,
+                decoration: BoxDecoration(color: _green.withOpacity(0.08), shape: BoxShape.circle),
+                child: const Icon(Icons.lock_outlined, size: 44, color: _green),
+              ),
+              const SizedBox(height: 24),
+              Text(isAr ? 'تسجيل الدخول مطلوب' : 'Login Required',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _navy)),
+              const SizedBox(height: 8),
+              Text(
+                isAr ? 'يجب تسجيل الدخول لعرض بلاغاتك' : 'You need to log in to view your reports',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade400, height: 1.5),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity, height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pushNamed('/login'),
+                  icon: const Icon(Icons.login_outlined, size: 18),
+                  label: Text(isAr ? 'تسجيل الدخول' : 'Log In'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _green, foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: _navy,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(
-          t('my_reports', lang: lang),
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
+        title: Text(t('my_reports', lang: lang),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -69,29 +118,22 @@ class _MyReportsPageState extends State<MyReportsPage> {
             return const _MyReportsSkeleton();
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.error_outline, size: 56, color: Colors.red.shade200),
-                const SizedBox(height: 12),
-                Text(
-                  isAr ? 'حدث خطأ أثناء التحميل' : 'Something went wrong',
-                  style: TextStyle(color: Colors.grey.shade500),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => setState(() {}),
-                  child: Text(isAr ? 'حاول مجدداً' : 'Try again',
-                      style: const TextStyle(color: _green)),
-                ),
-              ]),
-            );
+            return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.error_outline, size: 56, color: Colors.red.shade200),
+              const SizedBox(height: 12),
+              Text(isAr ? 'حدث خطأ أثناء التحميل' : 'Something went wrong',
+                  style: TextStyle(color: Colors.grey.shade500)),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => setState(() {}),
+                child: Text(isAr ? 'حاول مجدداً' : 'Try again',
+                    style: const TextStyle(color: _green)),
+              ),
+            ]));
           }
 
           final reports = snapshot.data ?? [];
-
-          if (reports.isEmpty) {
-            return _EmptyReports(isAr: isAr);
-          }
+          if (reports.isEmpty) return _EmptyReports(isAr: isAr);
 
           return RefreshIndicator(
             color: _green,
@@ -100,11 +142,12 @@ class _MyReportsPageState extends State<MyReportsPage> {
               padding: const EdgeInsets.all(16),
               itemCount: reports.length,
               itemBuilder: (context, index) {
-                final data = reports[index];
+                final data    = reports[index];
                 final problem = Problem.fromSupabase(data);
-                final statusColor = _statusColor(problem.status);
-                final statusIcon = _statusIcon(problem.status);
-                final date = problem.createdAt;
+                final sc      = _statusColor(problem.status);
+                final si      = _statusIcon(problem.status);
+                final date    = problem.createdAt;
+                final hasFixPhoto = (data['fix_photo_url'] ?? '').toString().isNotEmpty;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -115,21 +158,16 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
-                    onTap: () => _showReportDetail(context, problem, statusColor, statusIcon, isAr, lang),
+                    onTap: () => _showReportDetail(context, problem, data, sc, si, isAr, lang),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(children: [
-                        // Status icon
                         Container(
                           width: 48, height: 48,
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(statusIcon, color: statusColor, size: 24),
+                          decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                          child: Icon(si, color: sc, size: 24),
                         ),
                         const SizedBox(width: 14),
-                        // Info
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(problem.title,
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy),
@@ -138,14 +176,22 @@ class _MyReportsPageState extends State<MyReportsPage> {
                           Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                              decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
                               child: Text(t(problem.status, lang: lang),
-                                  style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w600)),
+                                  style: TextStyle(fontSize: 10, color: sc, fontWeight: FontWeight.w600)),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
+                            if (hasFixPhoto)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(color: _green.withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
+                                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Icon(Icons.check_circle, color: _green, size: 10),
+                                  SizedBox(width: 3),
+                                  Text('تم الإصلاح', style: TextStyle(fontSize: 9, color: _green, fontWeight: FontWeight.w600)),
+                                ]),
+                              ),
+                            const SizedBox(width: 6),
                             Text(problem.reportCode,
                                 style: TextStyle(fontSize: 10, color: Colors.grey.shade400, letterSpacing: 0.5)),
                           ]),
@@ -166,40 +212,33 @@ class _MyReportsPageState extends State<MyReportsPage> {
     );
   }
 
-  void _showReportDetail(
-    BuildContext context,
-    Problem problem,
-    Color statusColor,
-    IconData statusIcon,
-    bool isAr,
-    String lang,
-  ) {
+  void _showReportDetail(BuildContext context, Problem problem, Map<String, dynamic> data,
+      Color sc, IconData si, bool isAr, String lang) {
+    final fixPhotoUrl = data['fix_photo_url']?.toString() ?? '';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
+        height: MediaQuery.of(context).size.height * 0.82,
         decoration: const BoxDecoration(
           color: Color(0xFFF5F7FA),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(children: [
-          // Handle
           Container(
             margin: const EdgeInsets.only(top: 12),
             width: 40, height: 4,
             decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: 16),
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(children: [
               Container(
                 width: 44, height: 44,
-                decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(statusIcon, color: statusColor, size: 22),
+                decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(si, color: sc, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -207,12 +246,11 @@ class _MyReportsPageState extends State<MyReportsPage> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy),
                     maxLines: 2, overflow: TextOverflow.ellipsis),
                 Text(t(problem.status, lang: lang),
-                    style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 12, color: sc, fontWeight: FontWeight.w600)),
               ])),
             ]),
           ),
           const SizedBox(height: 16),
-          // Details
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -220,21 +258,50 @@ class _MyReportsPageState extends State<MyReportsPage> {
                 _DetailCard(children: [
                   _DetailRow(icon: Icons.tag, label: isAr ? 'الكود' : 'Code', value: problem.reportCode),
                   _DetailRow(icon: Icons.category_outlined, label: isAr ? 'الفئة' : 'Category', value: t(problem.category, lang: lang)),
+                  if ((data['district'] ?? '').toString().isNotEmpty)
+                    _DetailRow(icon: Icons.location_city_outlined, label: isAr ? 'الحي' : 'District', value: data['district']),
                   _DetailRow(icon: Icons.description_outlined, label: isAr ? 'الوصف' : 'Description', value: problem.description),
                   _DetailRow(icon: Icons.calendar_today_outlined, label: isAr ? 'تاريخ التقديم' : 'Submitted',
                       value: '${problem.createdAt.day}/${problem.createdAt.month}/${problem.createdAt.year}'),
                 ]),
                 const SizedBox(height: 12),
-                if (problem.photoUrl != null)
+
+                // Before photo
+                if (problem.photoUrl != null) ...[
+                  Align(alignment: Alignment.centerRight,
+                      child: Text(isAr ? 'صورة المشكلة' : 'Problem Photo',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _navy))),
+                  const SizedBox(height: 6),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: Image.network(problem.photoUrl!, height: 180, width: double.infinity, fit: BoxFit.cover),
                   ),
+                ],
+
+                // After fix photo
+                if (fixPhotoUrl.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: _green.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                    child: Row(children: [
+                      const Icon(Icons.check_circle, color: _green, size: 18),
+                      const SizedBox(width: 8),
+                      Text(isAr ? '✅ تم الإصلاح — صورة الإصلاح:' : '✅ Fixed — After photo:',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _green)),
+                    ]),
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.network(fixPhotoUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
-                // Track button
                 SizedBox(
-                  width: double.infinity,
-                  height: 48,
+                  width: double.infinity, height: 48,
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
@@ -273,34 +340,25 @@ class _EmptyReports extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
             width: 100, height: 100,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2D6A4F).withOpacity(0.08),
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: const Color(0xFF2D6A4F).withOpacity(0.08), shape: BoxShape.circle),
             child: const Icon(Icons.folder_open_outlined, size: 48, color: Color(0xFF2D6A4F)),
           ),
           const SizedBox(height: 24),
-          Text(
-            isAr ? 'لا توجد بلاغات بعد' : 'No reports yet',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A)),
-          ),
+          Text(isAr ? 'لا توجد بلاغات بعد' : 'No reports yet',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
           const SizedBox(height: 8),
-          Text(
-            isAr ? 'بلاغاتك ستظهر هنا بعد تقديمها' : 'Your submitted reports will appear here',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade400, height: 1.5),
-          ),
+          Text(isAr ? 'بلاغاتك ستظهر هنا بعد تقديمها' : 'Your submitted reports will appear here',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade400, height: 1.5)),
           const SizedBox(height: 28),
           SizedBox(
-            width: double.infinity,
-            height: 50,
+            width: double.infinity, height: 50,
             child: ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pushNamed('/report'),
               icon: const Icon(Icons.add, size: 18),
               label: Text(isAr ? 'تقديم أول بلاغ' : 'Submit your first report'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D6A4F),
-                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF2D6A4F), foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
@@ -353,7 +411,7 @@ class _MyReportsSkeletonState extends State<_MyReportsSkeleton> with SingleTicke
               const SizedBox(height: 8),
               Container(height: 10, width: 120, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
               const SizedBox(height: 4),
-              Container(height: 10, width: 80, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+              Container(height: 10, width: 80,  decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
             ])),
           ]),
         ),
@@ -362,7 +420,7 @@ class _MyReportsSkeletonState extends State<_MyReportsSkeleton> with SingleTicke
   }
 }
 
-// ── Helper widgets ─────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 class _DetailCard extends StatelessWidget {
   final List<Widget> children;

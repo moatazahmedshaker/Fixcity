@@ -17,11 +17,11 @@ class Problem {
   String status;
   DateTime createdAt;
   String? userId;
+  Map<String, dynamic>? data; // raw row — used for fix_photo_url etc.
 
   Problem({
     this.id,
     required this.reportCode,
-    this.data,
     required this.title,
     required this.category,
     required this.description,
@@ -30,45 +30,51 @@ class Problem {
     required this.status,
     required this.createdAt,
     this.userId,
+    this.data,
   });
 
-  factory Problem.fromSupabase(Map<String, dynamic> data) {
+  factory Problem.fromSupabase(Map<String, dynamic> map) {
     return Problem(
-      id: data['id']?.toString(),
-      reportCode: data['report_code'] ?? '',
-      title: data['title'] ?? '',
-      category: data['category'] ?? '',
-      description: data['description'] ?? '',
-      photoUrl: data['photo_url'],
-      location: LatLngPoint(
-        (data['latitude'] as num?)?.toDouble() ?? 0.0,
-        (data['longitude'] as num?)?.toDouble() ?? 0.0,
+      id:          map['id']?.toString(),
+      reportCode:  map['report_code'] ?? '',
+      title:       map['title'] ?? '',
+      category:    map['category'] ?? '',
+      description: map['description'] ?? '',
+      photoUrl:    map['photo_url'],
+      location:    LatLngPoint(
+        (map['latitude']  as num?)?.toDouble() ?? 0.0,
+        (map['longitude'] as num?)?.toDouble() ?? 0.0,
       ),
-      status: data['status'] ?? 'pending',
-      createdAt: DateTime.parse(data['created_at']),
-      userId: data['user_id']?.toString(),
+      status:    map['status'] ?? 'pending',
+      createdAt: DateTime.parse(map['created_at']),
+      userId:    map['user_id']?.toString(),
+      data:      map,
     );
   }
 }
+
 class StatusUpdate {
   String text;
   DateTime updatedAt;
-  String? updatedBy; 
+  String? updatedBy;
+
   StatusUpdate({
     required this.text,
     required this.updatedAt,
     this.updatedBy,
   });
+
   factory StatusUpdate.fromSupabase(Map<String, dynamic> data) {
     return StatusUpdate(
-      text: data['text'] ?? '',
-      updatedAt: DateTime.parse(data['updated_at']), 
+      text:      data['text'] ?? '',
+      updatedAt: DateTime.parse(data['updated_at']),
       updatedBy: data['updated_by'],
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
-      'text': text,
+      'text':       text,
       'updated_at': updatedAt.toIso8601String(),
       'updated_by': updatedBy,
     };

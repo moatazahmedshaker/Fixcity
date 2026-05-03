@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../login_page.dart';
+import '../main.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -80,6 +81,26 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _navy,
+      appBar: AppBar(
+        backgroundColor: _navy,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: TextButton(
+              onPressed: () {
+                appLocale.value = appLocale.value.languageCode == 'ar'
+                    ? const Locale('en') : const Locale('ar');
+              },
+              child: Text(
+                appLocale.value.languageCode == 'ar' ? 'EN' : 'ع',
+                style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

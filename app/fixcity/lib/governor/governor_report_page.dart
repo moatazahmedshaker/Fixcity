@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/problem.dart';
+import '../main.dart';
 
 class GovernorReportPage extends StatefulWidget {
   final String reportId;
@@ -35,8 +36,8 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
           fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'));
       final url = supabase.storage.from('files').getPublicUrl(fileName);
       setState(() => _fixPhotoUrl = url);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('تم رفع صورة الإصلاح ✓'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(appLocale.value.languageCode == 'ar' ? 'تم رفع صورة الإصلاح ✓' : 'Fix photo uploaded ✓'),
         backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
       ));
@@ -53,16 +54,16 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
 
   Future<void> _submitUpdate(String reportId) async {
     if (_selectedStatus == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('الرجاء اختيار الحالة الجديدة'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(appLocale.value.languageCode == 'ar' ? 'الرجاء اختيار الحالة الجديدة' : 'Please select a new status'),
         backgroundColor: Colors.orange,
         behavior: SnackBarBehavior.floating,
       ));
       return;
     }
     if (_selectedStatus == 'resolved' && _fixPhotoUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('يجب رفع صورة الإصلاح قبل تحديد الحالة كـ "تم الحل"'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(appLocale.value.languageCode == 'ar' ? 'يجب رفع صورة الإصلاح قبل تحديد الحالة كـ "تم الحل"' : 'Please upload a fix photo before marking as Resolved'),
         backgroundColor: Colors.orange,
         behavior: SnackBarBehavior.floating,
       ));
@@ -80,7 +81,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
 
       if (_noteCtrl.text.trim().isNotEmpty) {
         await supabase.from('status_updates').insert({
-          'report_id': int.tryParse(reportId) ?? reportId,
+          'report_id': reportId,
           'text':      _noteCtrl.text.trim(),
           'updated_at': DateTime.now().toIso8601String(),
           'updated_by': 'رئيس الحي',
@@ -88,12 +89,13 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('تم تحديث البلاغ بنجاح ✓'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(appLocale.value.languageCode == 'ar' ? 'تم تحديث البلاغ بنجاح ✓' : 'Report updated successfully ✓'),
         backgroundColor: _green,
         behavior: SnackBarBehavior.floating,
       ));
-      Navigator.of(context).pop();
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -107,11 +109,21 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
   }
 
   String _statusLabel(String s) {
-    switch (s) {
-      case 'pending':    return 'قيد الانتظار';
-      case 'in_progress':return 'جارٍ العمل';
-      case 'resolved':   return 'تم الحل';
-      default:           return s;
+    final isAr = appLocale.value.languageCode == 'ar';
+    if (isAr) {
+      switch (s) {
+        case 'pending':    return 'قيد الانتظار';
+        case 'in_progress':return 'جارٍ العمل';
+        case 'resolved':   return 'تم الحل';
+        default:           return s;
+      }
+    } else {
+      switch (s) {
+        case 'pending':    return 'Pending';
+        case 'in_progress':return 'In Progress';
+        case 'resolved':   return 'Resolved';
+        default:           return s;
+      }
     }
   }
 
@@ -126,13 +138,15 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = appLocale.value.languageCode;
+    final isAr = lang == 'ar';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: _navy,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('تفاصيل البلاغ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        title: Text(isAr ? 'تفاصيل البلاغ' : 'Report Details', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
@@ -169,19 +183,19 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               Container(
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                 child: Column(children: [
-                  _Row(icon: Icons.tag,                  label: 'الكود',     value: problem.reportCode),
+                  _Row(icon: Icons.tag,                  label: isAr ? 'الكود' : 'Code',     value: problem.reportCode),
                   _Div(),
-                  _Row(icon: Icons.location_city,        label: 'الحي',      value: r['district'] ?? '-'),
+                  _Row(icon: Icons.location_city,        label: isAr ? 'الحي' : 'District',      value: r['district'] ?? '-'),
                   _Div(),
-                  _Row(icon: Icons.person_outline,       label: 'رئيس الحي', value: r['governor_name'] ?? '-'),
+                  _Row(icon: Icons.person_outline,       label: isAr ? 'رئيس الحي' : 'Governor', value: r['governor_name'] ?? '-'),
                   _Div(),
-                  _Row(icon: Icons.phone_outlined,       label: 'رقم الهاتف', value: r['governor_phone'] ?? '-'),
+                  _Row(icon: Icons.phone_outlined,       label: isAr ? 'رقم الهاتف' : 'Phone', value: r['governor_phone'] ?? '-'),
                   _Div(),
-                  _Row(icon: Icons.category_outlined,    label: 'الفئة',     value: problem.category),
+                  _Row(icon: Icons.category_outlined,    label: isAr ? 'الفئة' : 'Category',     value: problem.category),
                   _Div(),
-                  _Row(icon: Icons.description_outlined, label: 'الوصف',     value: problem.description),
+                  _Row(icon: Icons.description_outlined, label: isAr ? 'الوصف' : 'Description',     value: problem.description),
                   _Div(),
-                  _Row(icon: Icons.calendar_today_outlined, label: 'التاريخ',
+                  _Row(icon: Icons.calendar_today_outlined, label: isAr ? 'التاريخ' : 'Date',
                       value: '${problem.createdAt.year}/${problem.createdAt.month}/${problem.createdAt.day}'),
                 ]),
               ),
@@ -189,7 +203,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
 
               // Before photo
               if (problem.photoUrl != null) ...[
-                const Text('صورة المشكلة (قبل)',
+                Text(isAr ? 'صورة المشكلة (قبل)' : 'Problem Photo (Before)',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
                 const SizedBox(height: 8),
                 ClipRRect(
@@ -200,7 +214,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               ],
 
               // Map
-              const Text('الموقع', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
+              Text(isAr ? 'الموقع' : 'Location', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
@@ -234,11 +248,11 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               const SizedBox(height: 24),
 
               // Governor action section
-              const Text('إجراء رئيس الحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy)),
+              Text(isAr ? 'إجراء رئيس الحي' : 'Governor Action', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy)),
               const SizedBox(height: 16),
 
               // Fix photo upload
-              const Text('صورة الإصلاح (بعد)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _navy)),
+              Text(isAr ? 'صورة الإصلاح (بعد)' : 'Fix Photo (After)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _navy)),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _uploading ? null : () => _pickAndUploadFixPhoto(problem.reportCode),
@@ -285,7 +299,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                               ? const CircularProgressIndicator(color: _green, strokeWidth: 2)
                               : Icon(Icons.add_photo_alternate_outlined, size: 32, color: Colors.grey.shade300),
                           const SizedBox(height: 8),
-                          Text(_uploading ? 'جارٍ الرفع...' : 'ارفع صورة بعد الإصلاح',
+                          Text(_uploading ? (isAr ? 'جارٍ الرفع...' : 'Uploading...') : (isAr ? 'ارفع صورة بعد الإصلاح' : 'Upload after fix photo'),
                               style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
                         ]),
                 ),
@@ -297,8 +311,8 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                 controller: _noteCtrl,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'ملاحظة (اختياري)',
-                  hintText: 'مثال: تم إرسال فريق الصيانة وإصلاح المشكلة',
+                  labelText: isAr ? 'ملاحظة (اختياري)' : 'Note (optional)',
+                  hintText: isAr ? 'مثال: تم إرسال فريق الصيانة وإصلاح المشكلة' : 'e.g. Maintenance team dispatched and issue resolved',
                   prefixIcon: const Icon(Icons.edit_note_outlined, color: _green),
                   filled: true, fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -309,7 +323,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               const SizedBox(height: 16),
 
               // Status dropdown
-              const Text('تغيير الحالة إلى', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _navy)),
+              Text(isAr ? 'تغيير الحالة إلى' : 'Change status to', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _navy)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _selectedStatus,
@@ -338,7 +352,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                   ),
                   child: _submitting
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('حفظ التحديث', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : Text(isAr ? 'حفظ التحديث' : 'Save Update', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 24),
