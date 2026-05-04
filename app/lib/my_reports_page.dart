@@ -237,7 +237,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
             color: kRed,
             onRefresh: () async => setState(() {}),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: reports.length,
               itemBuilder: (context, index) {
                 final data    = reports[index];

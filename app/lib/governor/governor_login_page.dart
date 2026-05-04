@@ -17,6 +17,8 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
   bool _obscure   = true;
 
   Future<void> _login() async {
+    // Sign out any existing citizen session first
+    try { await Supabase.instance.client.auth.signOut(); } catch (_) {}
     final lang = appLocale.value.languageCode;
     final isAr = lang == 'ar';
     if (_email.text.isEmpty || _password.text.isEmpty) {

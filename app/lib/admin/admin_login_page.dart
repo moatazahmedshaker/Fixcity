@@ -23,6 +23,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   static const _dark  = Color(0xFF1A1A2E);
 
   Future<void> _login() async {
+    // Sign out any existing citizen session first
+    try { await supabase.auth.signOut(); } catch (_) {}
     setState(() { _isLoading = true; _errorMessage = ''; });
     try {
       // Step 1: authenticate

@@ -441,18 +441,6 @@ Respond with ONLY the category key. Example: cat_pothole
       });
       if (!mounted) return;
 
-      // Check if user has a phone on file
-      String? phone;
-      try {
-        final userId = supabase.auth.currentUser?.id;
-        if (userId != null) {
-          final profile = await supabase.from('profiles').select('phone').eq('id', userId).single();
-          phone = profile['phone']?.toString();
-        }
-      } catch (_) {} catch (_) {}
-        }
-      }
-
       Navigator.of(context).pop();
       _showSuccessDialog(reportCode, lang);
     } catch (e) {

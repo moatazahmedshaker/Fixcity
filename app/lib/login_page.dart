@@ -282,7 +282,12 @@ class FixField extends StatelessWidget {
     this.suffixIcon,
     this.maxLines = 1,
     this.onTap,
+    this.textInputAction,
+    this.onSubmitted,
   });
+
+  final TextInputAction? textInputAction;
+  final VoidCallback? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -294,6 +299,8 @@ class FixField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         maxLines: obscureText ? 1 : maxLines,
+        textInputAction: textInputAction,
+        onFieldSubmitted: onSubmitted != null ? (_) => onSubmitted!() : null,
         onTap: onTap,
         style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
         decoration: InputDecoration(

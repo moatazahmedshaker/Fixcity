@@ -20,9 +20,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   int _currentPage = 0;
   final PageController _pageController = PageController();
 
-  static const _green      = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
-  static const _navy       = Color(0xFF0B1F3A);
+  static const _red      = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
+  static const _dark       = Color(0xFF1A1A2E);
 
   final List<_OnboardingData> _pages = [
     _OnboardingData(
@@ -30,7 +30,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       titleAr: 'أبلغ بسهولة',       titleEn: 'Report Easily',
       subtitleAr: 'التقط صورة، حدد الموقع، وأرسل بلاغك في ثوانٍ',
       subtitleEn: 'Take a photo, pin the location, and submit in seconds',
-      color: _green,
+      color: kRed,
     ),
     _OnboardingData(
       icon: Icons.manage_search_outlined,
@@ -91,8 +91,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     final isAr = lang == 'ar';
 
     return Scaffold(
-      backgroundColor: _navy,
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), kBg],
+            stops: [0.0, 0.55, 1.0],
+          ),
+        ),
+        child: SafeArea(
         child: _step == 0
             ? _buildLanguagePicker()
             : _buildOnboarding(isAr),
@@ -120,7 +129,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                   child: Column(children: [
                     Container(
                       width: 72, height: 72,
-                      decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(18)),
+                      decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(18)),
                       child: const Icon(Icons.location_pin, color: Colors.white, size: 38),
                     ),
                     const SizedBox(height: 16),
@@ -176,7 +185,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           Row(children: [
             Container(
               width: 32, height: 32,
-              decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
               child: const Icon(Icons.location_pin, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 8),
@@ -230,7 +239,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             child: ElevatedButton(
               onPressed: _next,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _green,
+                backgroundColor: kRed,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
@@ -325,4 +334,7 @@ class _OnboardingData {
     required this.icon, required this.titleAr, required this.titleEn,
     required this.subtitleAr, required this.subtitleEn, required this.color,
   });
+    ),
+    );
+  }
 }

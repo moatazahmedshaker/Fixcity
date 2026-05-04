@@ -105,12 +105,10 @@ class SettingsPage extends StatelessWidget {
               _SectionHeader(label: isAr ? 'عن التطبيق' : 'About', dark: dark),
               const SizedBox(height: 10),
               _SettingsCard(color: cardColor, children: [
-                _InfoTile(icon: Icons.info_outline, title: isAr ? 'الإصدار' : 'Version', value: '1.0.0', textColor: textColor, subColor: subColor),
+                _InfoTile(icon: Icons.info_outline, title: isAr ? 'الإصدار' : 'Version', value: '1.1.6', textColor: textColor, subColor: subColor),
                 _Divider(dark: dark),
                 _InfoTile(icon: Icons.school_outlined, title: isAr ? 'الجامعة' : 'University', value: 'Badr University in Cairo', textColor: textColor, subColor: subColor),
-                _Divider(dark: dark),
-                _InfoTile(icon: Icons.auto_awesome_outlined, title: isAr ? 'مبني بـ' : 'Built with', value: 'Flutter + Supabase + Gemini AI', textColor: textColor, subColor: subColor),
-                _Divider(dark: dark),
+_Divider(dark: dark),
                 _TapTile(
                   icon: Icons.code_outlined,
                   title: isAr ? 'المستودع' : 'Repository',

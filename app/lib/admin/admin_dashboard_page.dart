@@ -14,6 +14,7 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final supabase = Supabase.instance.client;
   String _filterStatus = 'all';
+  String _filterDistrict = 'all';
   List<Map<String, dynamic>> _allReports = [];
   bool _loading = true;
 
@@ -74,9 +75,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filterStatus == 'all'
+    var filtered = _filterStatus == 'all'
         ? _allReports
         : _allReports.where((r) => r['status'] == _filterStatus).toList();
+    if (_filterDistrict != 'all') {
+      filtered = filtered.where((r) => r['district'] == _filterDistrict).toList();
+    }
+    final districts = ['all', ..._allReports.map((r) => r['district']?.toString() ?? '').where((d) => d.isNotEmpty).toSet().toList()..sort()];
 
     final pending    = _allReports.where((r) => r['status'] == 'pending').length;
     final inProgress = _allReports.where((r) => r['status'] == 'in_progress').length;
@@ -109,20 +114,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         actions: [
           // Pending badge
           if (pending > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 4, top: 12),
-              child: Stack(children: [
-                const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-                Positioned(
-                  top: 0, right: 0,
-                  child: Container(
-                    width: 14, height: 14,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: Center(child: Text('$pending', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800))),
-                  ),
+            Stack(children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                onPressed: null,
+              ),
+              Positioned(
+                top: 8, right: 8,
+                child: Container(
+                  width: 14, height: 14,
+                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  child: Center(child: Text('$pending', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800))),
                 ),
-              ]),
-            ),
+              ),
+            ]),
           IconButton(icon: const Icon(Icons.refresh_outlined, size: 20), onPressed: _loadReports),
           IconButton(icon: const Icon(Icons.logout_outlined, size: 20), onPressed: _logout),
         ],
@@ -141,6 +146,29 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const SizedBox(width: 8),
             _StatChip(value: '$resolved',             label: appLocale.value.languageCode == 'ar' ? 'محلول' : 'Resolved',  color: const Color(0xFF185FA5),  selected: _filterStatus == 'resolved',   onTap: () => setState(() => _filterStatus = 'resolved')),
           ]),
+        ),
+
+        // District filter
+        Container(
+          color: const Color(0xFF16213E),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: DropdownButtonFormField<String>(
+            value: _filterDistrict,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.location_city_outlined, color: Colors.white54, size: 18),
+              filled: true, fillColor: Colors.white10,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            ),
+            dropdownColor: const Color(0xFF1A1A2E),
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            items: districts.map((d) => DropdownMenuItem(
+              value: d,
+              child: Text(d == 'all' ? (appLocale.value.languageCode == 'ar' ? 'كل الأحياء' : 'All Districts') : d,
+                  style: const TextStyle(color: Colors.white)),
+            )).toList(),
+            onChanged: (v) => setState(() => _filterDistrict = v ?? 'all'),
+          ),
         ),
 
         Expanded(
@@ -209,8 +237,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 ),
                                 onPressed: () async {
                                   await Navigator.of(context).pushNamed('/admin/report/${data['id']}');
-                                  // Refresh after returning from detail page
-                                  _loadReports();
                                 },
                               ),
                             ),

@@ -143,7 +143,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
     final isAr = lang == 'ar';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: kDark,
         foregroundColor: Colors.white,
@@ -165,7 +165,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
           final existingFixPhoto = r['fix_photo_url'] as String?;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
               // Status badge
@@ -354,7 +354,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                   ),
                   child: _submitting
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text(isAr ? 'حفظ التحديث' : 'Save Update', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : Text(isAr ? 'حفظ التحديث' : 'Save Update', textAlign: TextAlign.center,, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 24),
