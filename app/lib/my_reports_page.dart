@@ -4,6 +4,7 @@ import 'models/problem.dart';
 import 'translations.dart';
 import 'main.dart';
 import 'login_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyReportsPage extends StatefulWidget {
   const MyReportsPage({super.key});
@@ -43,6 +44,101 @@ class _MyReportsPageState extends State<MyReportsPage> {
       case 'in_progress': return Icons.construction_outlined;
       case 'resolved':    return Icons.check_circle_outline;
       default:            return Icons.help_outline;
+    }
+  }
+
+  // ── Ping report ──────────────────────────────────────────────────────────
+  Future<void> _pingReport(String reportId, int currentPingCount, String lang) async {
+    final isAr = lang == 'ar';
+    try {
+      await _supabase.from('reports').update({
+        'pinged_at':  DateTime.now().toIso8601String(),
+        'ping_count': currentPingCount + 1,
+      }).eq('id', reportId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isAr ? '🔔 تم إرسال تنبيه للمسؤول' : '🔔 Reminder sent to the responsible team'),
+          backgroundColor: Colors.orange.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isAr ? 'فشل إرسال التنبيه' : 'Failed to send reminder'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    }
+  }
+
+  // ── WhatsApp share ────────────────────────────────────────────────────────
+  Future<void> _shareOnWhatsApp(Problem problem, Map<String, dynamic> data, String lang) async {
+    final isAr = lang == 'ar';
+    // Fetch user's phone from profiles
+    String? userPhone;
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId != null) {
+        final profile = await _supabase.from('profiles').select('phone').eq('id', userId).single();
+        userPhone = profile['phone']?.toString();
+      }
+    } catch (_) {}
+    final status = problem.status;
+    String statusText;
+    if (isAr) {
+      switch (status) {
+        case 'pending':    statusText = 'قيد الانتظار ⏳'; break;
+        case 'in_progress':statusText = 'جارٍ العمل 🔧'; break;
+        case 'resolved':   statusText = 'تم الحل ✅'; break;
+        default:           statusText = status;
+      }
+    } else {
+      switch (status) {
+        case 'pending':    statusText = 'Pending ⏳'; break;
+        case 'in_progress':statusText = 'In Progress 🔧'; break;
+        case 'resolved':   statusText = 'Resolved ✅'; break;
+        default:           statusText = status;
+      }
+    }
+
+    final message = isAr
+        ? '📍 *تقرير FixCity*\n\n'
+          '🔖 كود البلاغ: *${problem.reportCode}*\n'
+          '📂 الفئة: ${problem.category}\n'
+          '📊 الحالة: $statusText\n'
+          '📅 تاريخ التقديم: ${problem.createdAt.day}/${problem.createdAt.month}/${problem.createdAt.year}\n\n'
+          '${(data["district"] ?? "").toString().isNotEmpty ? "🏙️ الحي: ${data["district"]}\n" : ""}'
+          '📝 الوصف: ${problem.description}'
+        : '📍 *FixCity Report*\n\n'
+          '🔖 Report Code: *${problem.reportCode}*\n'
+          '📂 Category: ${problem.category}\n'
+          '📊 Status: $statusText\n'
+          '📅 Submitted: ${problem.createdAt.day}/${problem.createdAt.month}/${problem.createdAt.year}\n\n'
+          '${(data["district"] ?? "").toString().isNotEmpty ? "🏙️ District: ${data["district"]}\n" : ""}'
+          '📝 Description: ${problem.description}';
+
+    final encoded = Uri.encodeComponent(message);
+    // If we have the user's phone, open their own WhatsApp with the message
+    // Otherwise open WhatsApp share picker
+    final phone = userPhone?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+    final waNumber = phone.startsWith('0') ? '2$phone' : phone; // Egypt: prefix with country code 20
+    final url = waNumber.length >= 12
+        ? Uri.parse('https://wa.me/$waNumber?text=' + encoded)
+        : Uri.parse('https://wa.me/?text=' + encoded);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isAr ? 'لم يتم العثور على WhatsApp' : 'WhatsApp not found'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
     }
   }
 
@@ -300,6 +396,49 @@ class _MyReportsPageState extends State<MyReportsPage> {
                 ],
 
                 const SizedBox(height: 16),
+                // Ping button (only for pending/in_progress)
+                if (problem.status != 'resolved') ...[
+                  SizedBox(
+                    width: double.infinity, height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final pingCount = (data['ping_count'] ?? 0) as int;
+                        await _pingReport(problem.id!, pingCount, lang);
+                        if (mounted) Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.notifications_outlined, size: 18, color: Colors.orange),
+                      label: Text(
+                        isAr ? '🔔 تنبيه المسؤول (لم يتم الحل بعد)' : '🔔 Ping — Report still unresolved',
+                        style: const TextStyle(color: Colors.orange),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        side: const BorderSide(color: Colors.orange),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                // WhatsApp share
+                SizedBox(
+                  width: double.infinity, height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _shareOnWhatsApp(problem, data, lang),
+                    icon: const Icon(Icons.share_outlined, size: 18),
+                    label: Text(isAr ? 'مشاركة عبر WhatsApp' : 'Share on WhatsApp'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25D366),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Track button
                 SizedBox(
                   width: double.infinity, height: 48,
                   child: OutlinedButton.icon(

@@ -14,6 +14,7 @@ class _SignupPageState extends State<SignupPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _supabase = Supabase.instance.client;
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -22,22 +23,37 @@ class _SignupPageState extends State<SignupPage> {
   static const _greenLight = Color(0xFF52B788);
 
   Future<void> _signup() async {
+    final isAr = appLocale.value.languageCode == 'ar';
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
+        _passwordController.text.trim().isEmpty ||
+        _phoneController.text.trim().isEmpty) {
       _showError(t('fill_fields_error', lang: appLocale.value.languageCode));
+      return;
+    }
+    // Validate phone number
+    final phone = _phoneController.text.trim();
+    if (phone.length < 10) {
+      _showError(isAr ? 'الرجاء إدخال رقم هاتف صحيح' : 'Please enter a valid phone number');
       return;
     }
     setState(() => _isLoading = true);
     try {
-      await _supabase.auth.signUp(
+      final res = await _supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         data: {'full_name': _nameController.text.trim()},
       );
+      // Store phone in profiles table
+      if (res.user != null) {
+        await _supabase.from('profiles').upsert({
+          'id':    res.user!.id,
+          'phone': phone,
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(appLocale.value.languageCode == 'ar'
+          content: Text(isAr
               ? 'تم إنشاء الحساب! راجع بريدك الإلكتروني للتفعيل.'
               : 'Account created! Please check your email to verify.'),
           backgroundColor: _green,
@@ -68,6 +84,7 @@ class _SignupPageState extends State<SignupPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -133,6 +150,14 @@ class _SignupPageState extends State<SignupPage> {
                   const SizedBox(height: 20),
 
                   FixField(controller: _nameController, label: t('full_name', lang: lang), hint: isAr ? 'الاسم الكامل' : 'Your full name', icon: Icons.person_outline),
+                  const SizedBox(height: 16),
+                  FixField(
+                    controller: _phoneController,
+                    label: isAr ? 'رقم الهاتف *' : 'Phone Number *',
+                    hint: isAr ? '01012345678' : '01012345678',
+                    icon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
                   const SizedBox(height: 16),
                   FixField(controller: _emailController, label: t('email', lang: lang), hint: 'you@email.com', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
                   const SizedBox(height: 16),

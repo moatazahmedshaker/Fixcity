@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/problem.dart';
+import '../main.dart';
 
 class GovernorDashboardPage extends StatefulWidget {
   const GovernorDashboardPage({super.key});
@@ -57,12 +58,23 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
   }
 
   String _filterLabel(String f) {
-    switch (f) {
-      case 'all':         return 'الكل';
-      case 'pending':     return 'قيد الانتظار';
-      case 'in_progress': return 'جارٍ العمل';
-      case 'resolved':    return 'تم الحل';
-      default:            return f;
+    final isAr = appLocale.value.languageCode == 'ar';
+    if (isAr) {
+      switch (f) {
+        case 'all':         return 'الكل';
+        case 'pending':     return 'قيد الانتظار';
+        case 'in_progress': return 'جارٍ العمل';
+        case 'resolved':    return 'تم الحل';
+        default:            return f;
+      }
+    } else {
+      switch (f) {
+        case 'all':         return 'All';
+        case 'pending':     return 'Pending';
+        case 'in_progress': return 'In Progress';
+        case 'resolved':    return 'Resolved';
+        default:            return f;
+      }
     }
   }
 
@@ -81,6 +93,9 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: _green)));
     }
 
+    final lang  = appLocale.value.languageCode;
+    final isAr  = lang == 'ar';
+
     final filtered = _filter == 'all'
         ? _reports
         : _reports.where((r) => r['status'] == _filter).toList();
@@ -92,16 +107,14 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
         foregroundColor: Colors.white,
         elevation: 0,
         title: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          const Text('لوحة رئيس الحي', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          Text(isAr ? 'لوحة رئيس الحي' : 'Governor Dashboard',
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
           if (_district != null)
             Text(_district!, style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7))),
         ]),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined, size: 20),
-            onPressed: _loadReports,
-          ),
+          IconButton(icon: const Icon(Icons.refresh_outlined, size: 20), onPressed: _loadReports),
           IconButton(
             icon: const Icon(Icons.logout_outlined, size: 20),
             onPressed: () async {
@@ -135,10 +148,13 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                       decoration: BoxDecoration(
                         color: isSelected ? _green : Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isSelected ? _green : Colors.white.withOpacity(0.2)),
+                        border: Border.all(
+                            color: isSelected ? _green : Colors.white.withOpacity(0.2)),
                       ),
                       child: Text('${_filterLabel(f)} ($count)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                               color: isSelected ? Colors.white : Colors.white.withOpacity(0.7))),
                     ),
                   ),
@@ -148,10 +164,10 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
           ),
         ),
 
-        // Reports list
+        // Reports
         Expanded(
           child: _district == null
-              ? const Center(child: Text('لم يتم تعيين حي لهذا الحساب'))
+              ? Center(child: Text(isAr ? 'لم يتم تعيين حي لهذا الحساب' : 'No district assigned to this account'))
               : _reportsLoading
                   ? const Center(child: CircularProgressIndicator(color: _green))
                   : RefreshIndicator(
@@ -163,28 +179,33 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                               Column(children: [
                                 Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade200),
                                 const SizedBox(height: 12),
-                                Text('لا توجد بلاغات في هذا الحي',
-                                    style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                                Text(
+                                  isAr ? 'لا توجد بلاغات في هذا الحي' : 'No reports in this district',
+                                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                                ),
                                 const SizedBox(height: 6),
-                                Text('اسحب للأسفل للتحديث',
-                                    style: TextStyle(color: Colors.grey.shade300, fontSize: 12)),
+                                Text(
+                                  isAr ? 'اسحب للأسفل للتحديث' : 'Pull down to refresh',
+                                  style: TextStyle(color: Colors.grey.shade300, fontSize: 12),
+                                ),
                               ]),
                             ])
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: filtered.length,
                               itemBuilder: (context, i) {
-                                final r      = filtered[i];
-                                final status = r['status'] ?? 'pending';
-                                final color  = _statusColor(status);
-                                final date   = DateTime.tryParse(r['created_at'] ?? '') ?? DateTime.now();
+                                final r        = filtered[i];
+                                final status   = r['status'] ?? 'pending';
+                                final color    = _statusColor(status);
+                                final date     = DateTime.tryParse(r['created_at'] ?? '') ?? DateTime.now();
                                 final hasFixPhoto = (r['fix_photo_url'] ?? '').toString().isNotEmpty;
-                                final reportId = r['id'].toString();
+                                final pingCount   = r['ping_count'] ?? 0;
+                                final reportId    = r['id'].toString();
+                                final description = r['description'] ?? '';
 
                                 return GestureDetector(
                                   onTap: () async {
                                     await Navigator.of(context).pushNamed('/governor/report/$reportId');
-                                    // Refresh after returning
                                     _loadReports();
                                   },
                                   child: Container(
@@ -193,6 +214,9 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
+                                      border: pingCount > 0 && status != 'resolved'
+                                          ? Border.all(color: Colors.orange.shade300, width: 1.5)
+                                          : Border.all(color: Colors.grey.shade100),
                                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
                                     ),
                                     child: Row(children: [
@@ -203,7 +227,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                        Text(r['description'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
+                                        Text(description, maxLines: 1, overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _navy)),
                                         const SizedBox(height: 4),
                                         Row(children: [
@@ -213,14 +237,23 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                             child: Text(_filterLabel(status),
                                                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           if (hasFixPhoto)
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                               decoration: BoxDecoration(color: _green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                                              child: const Text('📷 صورة الإصلاح',
-                                                  style: TextStyle(fontSize: 10, color: _green, fontWeight: FontWeight.w600)),
+                                              child: Text(isAr ? '📷 صورة الإصلاح' : '📷 Fix Photo',
+                                                  style: const TextStyle(fontSize: 10, color: _green, fontWeight: FontWeight.w600)),
                                             ),
+                                          if (pingCount > 0 && status != 'resolved') ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                              child: Text('🔔 $pingCount ${isAr ? 'تنبيه' : 'ping${pingCount > 1 ? 's' : ''}'}',
+                                                  style: const TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.w600)),
+                                            ),
+                                          ],
                                         ]),
                                         const SizedBox(height: 2),
                                         Text('${date.year}/${date.month}/${date.day}',
