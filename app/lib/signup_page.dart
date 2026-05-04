@@ -1,3 +1,4 @@
+import 'theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
@@ -19,8 +20,8 @@ class _SignupPageState extends State<SignupPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
+  static const _red   = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
 
   Future<void> _signup() async {
     final isAr = appLocale.value.languageCode == 'ar';
@@ -56,7 +57,7 @@ class _SignupPageState extends State<SignupPage> {
           content: Text(isAr
               ? 'تم إنشاء الحساب! راجع بريدك الإلكتروني للتفعيل.'
               : 'Account created! Please check your email to verify.'),
-          backgroundColor: _green,
+          backgroundColor: kRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ));
@@ -120,7 +121,7 @@ class _SignupPageState extends State<SignupPage> {
           child: Container(
             height: 4,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [_green, _greenLight]),
+              gradient: LinearGradient(colors: [kRed, kBlue]),
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
           ),
@@ -135,7 +136,7 @@ class _SignupPageState extends State<SignupPage> {
                 children: [
                   FixMobileLogo(isAr: isAr),
                   Text(isAr ? 'إنشاء حساب جديد' : 'Create account',
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A), letterSpacing: -0.5)),
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E), letterSpacing: -0.5)),
                   const SizedBox(height: 6),
                   Text(isAr ? 'انضم إلى فيكس سيتي وساهم في تحسين مدينتك' : 'Join FixCity and start making a difference.',
                       style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
@@ -174,7 +175,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   const SizedBox(height: 24),
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: _green))
+                      ? const Center(child: CircularProgressIndicator(color: kRed))
                       : FixGreenButton(label: isAr ? 'إنشاء حسابي' : 'Create My Account', onPressed: _signup),
                   const SizedBox(height: 20),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -183,7 +184,7 @@ class _SignupPageState extends State<SignupPage> {
                     GestureDetector(
                       onTap: () => Navigator.of(context).pushNamed('/login'),
                       child: Text(t('login', lang: lang),
-                          style: const TextStyle(color: _green, fontWeight: FontWeight.w600, fontSize: 13)),
+                          style: const TextStyle(color: kRed, fontWeight: FontWeight.w600, fontSize: 13)),
                     ),
                   ]),
                 ],
@@ -207,14 +208,14 @@ class _RoleCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFF2D6A4F).withOpacity(0.05) : Colors.white,
-        border: Border.all(color: selected ? const Color(0xFF2D6A4F) : Colors.grey.shade300, width: 1.5),
+        color: selected ? const Color(0xFFCC0000).withOpacity(0.05) : Colors.white,
+        border: Border.all(color: selected ? const Color(0xFFCC0000) : Colors.grey.shade300, width: 1.5),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(children: [
-        Icon(icon, size: 24, color: selected ? const Color(0xFF2D6A4F) : Colors.grey),
+        Icon(icon, size: 24, color: selected ? const Color(0xFFCC0000) : Colors.grey),
         const SizedBox(height: 6),
-        Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? const Color(0xFF0B1F3A) : Colors.grey.shade600)),
+        Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? const Color(0xFF1A1A2E) : Colors.grey.shade600)),
         Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
       ]),
     );

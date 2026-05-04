@@ -1,3 +1,4 @@
+import '../theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/problem.dart';
@@ -16,8 +17,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   List<Map<String, dynamic>> _allReports = [];
   bool _loading = true;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _dark  = Color(0xFF1A1A2E);
 
   @override
   void initState() {
@@ -47,7 +48,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     switch (s) {
       case 'pending':    return const Color(0xFFF59E0B);
       case 'in_progress':return const Color(0xFF1A56DB);
-      case 'resolved':   return _green;
+      case 'resolved':   return kRed;
       default:           return Colors.grey;
     }
   }
@@ -84,19 +85,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Row(children: [
           Container(
             width: 30, height: 30,
-            decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(7)),
+            decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
             child: const Icon(Icons.location_pin, color: Colors.white, size: 16),
           ),
           const SizedBox(width: 8),
           RichText(text: const TextSpan(
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-            children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFF52B788)))],
+            children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFF185FA5)))],
           )),
           const SizedBox(width: 8),
           Container(
@@ -129,7 +130,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       body: Column(children: [
         // Filter chips with live counts
         Container(
-          color: _navy,
+          color: kDark,
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Row(children: [
             _StatChip(value: '${_allReports.length}', label: appLocale.value.languageCode == 'ar' ? 'الكل' : 'All',   color: Colors.white70,           selected: _filterStatus == 'all',        onTap: () => setState(() => _filterStatus = 'all')),
@@ -138,7 +139,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const SizedBox(width: 8),
             _StatChip(value: '$inProgress',           label: appLocale.value.languageCode == 'ar' ? 'جارٍ' : 'Active',   color: const Color(0xFF60A5FA),  selected: _filterStatus == 'in_progress',onTap: () => setState(() => _filterStatus = 'in_progress')),
             const SizedBox(width: 8),
-            _StatChip(value: '$resolved',             label: appLocale.value.languageCode == 'ar' ? 'محلول' : 'Resolved',  color: const Color(0xFF52B788),  selected: _filterStatus == 'resolved',   onTap: () => setState(() => _filterStatus = 'resolved')),
+            _StatChip(value: '$resolved',             label: appLocale.value.languageCode == 'ar' ? 'محلول' : 'Resolved',  color: const Color(0xFF185FA5),  selected: _filterStatus == 'resolved',   onTap: () => setState(() => _filterStatus = 'resolved')),
           ]),
         ),
 
@@ -152,7 +153,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       Text(appLocale.value.languageCode == 'ar' ? 'لا توجد بلاغات' : 'No reports found', style: TextStyle(color: Colors.grey.shade400)),
                     ]))
                   : RefreshIndicator(
-                      color: _green,
+                      color: kRed,
                       onRefresh: _loadReports,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
@@ -178,7 +179,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 child: Icon(Icons.report_problem_outlined, color: sc, size: 22),
                               ),
                               title: Text(problem.title,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: kDark)),
                               subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 const SizedBox(height: 4),
                                 Row(children: [
@@ -193,7 +194,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                     Text(data['district'], style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
                                   if (hasFixPhoto) ...[
                                     const SizedBox(width: 6),
-                                    const Icon(Icons.photo_camera, size: 12, color: _green),
+                                    const Icon(Icons.photo_camera, size: 12, color: kRed),
                                   ],
                                 ]),
                                 const SizedBox(height: 2),
@@ -204,7 +205,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 icon: Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(8)),
-                                  child: const Icon(Icons.edit_outlined, size: 18, color: _green),
+                                  child: const Icon(Icons.edit_outlined, size: 18, color: kRed),
                                 ),
                                 onPressed: () async {
                                   await Navigator.of(context).pushNamed('/admin/report/${data['id']}');

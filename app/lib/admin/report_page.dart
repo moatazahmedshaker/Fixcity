@@ -12,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:random_string/random_string.dart';
 import 'login_page.dart';
 import 'translations.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'main.dart';
 
 // ── District model ─────────────────────────────────────────────────────────
@@ -292,12 +293,131 @@ Respond with ONLY the category key. Example: cat_pothole
       final encoded   = Uri.encodeComponent(message);
       // sms: URI scheme opens the native SMS app pre-filled
       final url = Uri.parse('sms:$formatted?body=$encoded');
-  
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
     } catch (e) {
       debugPrint('SMS failed: \$e');
     }
   }
 
+  // ── WhatsApp confirmation ────────────────────────────────────────────────
+
+  Future<void> _sendWhatsAppConfirmation(String phone, String reportCode, String lang) async {
+    final isAr = lang == 'ar';
+    final message = isAr
+        ? '✅ *تم تقديم بلاغك بنجاح على FixCity*\n\n'
+          '🔖 كود البلاغ: *$reportCode*\n'
+          '📂 الفئة: ${t(_selectedCategory!, lang: lang)}\n'
+          '🏙️ الحي: ${_selectedDistrict!.nameAr}\n'
+          '📊 الحالة: قيد الانتظار ⏳\n\n'
+          'احتفظ بهذا الكود لمتابعة بلاغك في التطبيق.'
+        : '✅ *Your FixCity report was submitted successfully*\n\n'
+          '🔖 Report Code: *$reportCode*\n'
+          '📂 Category: ${t(_selectedCategory!, lang: lang)}\n'
+          '🏙️ District: ${_selectedDistrict!.nameEn}\n'
+          '📊 Status: Pending ⏳\n\n'
+          'Keep this code to track your report in the app.';
+
+    final encoded = Uri.encodeComponent(message);
+    final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    final waNumber = cleaned.startsWith('0') ? '2$cleaned' : cleaned;
+    final url = Uri.parse('https://wa.me/$waNumber?text=' + encoded);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  // ── Phone bottom sheet ────────────────────────────────────────────────────
+
+  Future<String?> _askForPhone(String lang) async {
+    final isAr = lang == 'ar';
+    final ctrl = TextEditingController();
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            Container(
+              width: 60, height: 60,
+              decoration: BoxDecoration(color: const Color(0xFF25D366).withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.chat_outlined, color: Color(0xFF25D366), size: 30),
+            ),
+            const SizedBox(height: 16),
+            Text(isAr ? 'رقم واتساب للتأكيد' : 'WhatsApp Confirmation',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+            const SizedBox(height: 8),
+            Text(
+              isAr
+                  ? 'أدخل رقم هاتفك لاستلام تأكيد البلاغ عبر واتساب'
+                  : 'Enter your phone number to receive a WhatsApp confirmation',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.5),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.phone,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: '01012345678',
+                prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFFCC0000)),
+                filled: true, fillColor: const Color(0xFFF5F7FA),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFCC0000), width: 2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(null),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade600,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                  child: Text(isAr ? 'تخطي' : 'Skip'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    final phone = ctrl.text.trim();
+                    if (phone.length < 10) return;
+                    Navigator.of(ctx).pop(phone);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    elevation: 0,
+                  ),
+                  child: Text(isAr ? 'إرسال تأكيد' : 'Send Confirmation'),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 8),
+          ]),
+        ),
+      ),
+    );
+  }
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
@@ -449,12 +569,30 @@ Respond with ONLY the category key. Example: cat_pothole
           final profile = await supabase.from('profiles').select('phone').eq('id', userId).single();
           phone = profile['phone']?.toString();
         }
-      } catch (_) {} catch (_) {}
+      } catch (_) {}
+
+      // If no phone, ask for it now
+      if ((phone == null || phone.isEmpty) && mounted) {
+        phone = await _askForPhone(lang);
+        // Save it for future use
+        if (phone != null && phone.isNotEmpty) {
+          try {
+            final userId = supabase.auth.currentUser?.id;
+            if (userId != null) {
+              await supabase.from('profiles').upsert({'id': userId, 'phone': phone});
+            }
+          } catch (_) {}
         }
       }
 
       Navigator.of(context).pop();
       _showSuccessDialog(reportCode, lang);
+
+      // Send SMS confirmation
+      if (phone != null && phone.isNotEmpty && mounted) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _sendSMSConfirmation(phone, reportCode, lang);
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -494,7 +632,7 @@ Respond with ONLY the category key. Example: cat_pothole
               decoration: BoxDecoration(
                 color: const Color(0xFFF0FDF4),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: kBlue),
+                border: Border.all(color: _greenLight),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text(code, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kRed, letterSpacing: 2)),

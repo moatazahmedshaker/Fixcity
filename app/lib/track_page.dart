@@ -1,3 +1,4 @@
+import 'theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/problem.dart';
@@ -20,9 +21,9 @@ class TrackPageState extends State<TrackPage> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
-  static const _navy = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
+  static const _dark = Color(0xFF1A1A2E);
 
   Future<void> _trackProblem() async {
     final lang = appLocale.value.languageCode;
@@ -48,7 +49,7 @@ class TrackPageState extends State<TrackPage> {
     switch (status) {
       case 'pending': return const Color(0xFFF59E0B);
       case 'in_progress': return const Color(0xFF1A56DB);
-      case 'resolved': return const Color(0xFF2D6A4F);
+      case 'resolved': return const Color(0xFFCC0000);
       default: return Colors.grey;
     }
   }
@@ -70,7 +71,7 @@ class TrackPageState extends State<TrackPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(t('track_page_title', lang: lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
@@ -79,7 +80,7 @@ class TrackPageState extends State<TrackPage> {
       body: Column(children: [
         // Search header
         Container(
-          color: _navy,
+          color: kDark,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           child: Row(children: [
             Expanded(
@@ -91,11 +92,11 @@ class TrackPageState extends State<TrackPage> {
                 child: TextField(
                   controller: _codeController,
                   textCapitalization: TextCapitalization.characters,
-                  style: const TextStyle(fontSize: 14, color: _navy, fontWeight: FontWeight.w600, letterSpacing: 1),
+                  style: const TextStyle(fontSize: 14, color: kDark, fontWeight: FontWeight.w600, letterSpacing: 1),
                   decoration: InputDecoration(
                     hintText: t('enter_code', lang: lang),
                     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontWeight: FontWeight.normal, letterSpacing: 0),
-                    prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF2D6A4F)),
+                    prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFFCC0000)),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -108,7 +109,7 @@ class TrackPageState extends State<TrackPage> {
               onTap: _trackProblem,
               child: Container(
                 width: 48, height: 48,
-                decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(12)),
                 child: const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
               ),
             ),
@@ -225,7 +226,7 @@ class _ResultView extends StatelessWidget {
         if (problem.photoUrl != null) ...[
           const SizedBox(height: 16),
           Text(isAr ? 'صورة المشكلة (قبل)' : 'Problem Photo (Before)',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -239,19 +240,19 @@ class _ResultView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF2D6A4F).withOpacity(0.1),
+              color: const Color(0xFFCC0000).withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.check_circle, color: Color(0xFF2D6A4F), size: 16),
+              const Icon(Icons.check_circle, color: Color(0xFFCC0000), size: 16),
               const SizedBox(width: 6),
               Text(isAr ? 'تم الإصلاح' : 'Issue Fixed',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF2D6A4F))),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFCC0000))),
             ]),
           ),
           const SizedBox(height: 8),
           Text(isAr ? 'صورة بعد الإصلاح' : 'After Fix Photo',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -266,7 +267,7 @@ class _ResultView extends StatelessWidget {
 
         // Updates timeline
         Text(isAr ? 'سجل التحديثات' : 'Update History',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
         const SizedBox(height: 12),
 
         if (updates.isEmpty)
@@ -289,7 +290,7 @@ class _ResultView extends StatelessWidget {
               Column(children: [
                 Container(
                   width: 10, height: 10,
-                  decoration: const BoxDecoration(color: Color(0xFF2D6A4F), shape: BoxShape.circle),
+                  decoration: const BoxDecoration(color: Color(0xFFCC0000), shape: BoxShape.circle),
                 ),
                 if (!isLast) Container(width: 2, height: 56, color: Colors.grey.shade200),
               ]),
@@ -301,7 +302,7 @@ class _ResultView extends StatelessWidget {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(update.text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF0B1F3A))),
+                      Text(update.text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF1A1A2E))),
                       const SizedBox(height: 4),
                       Text('${date.year}/${date.month}/${date.day}', style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
                     ]),
@@ -331,7 +332,7 @@ class _DetailTile extends StatelessWidget {
           const SizedBox(height: 2),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 120),
-            child: Text(value, style: const TextStyle(fontSize: 14, color: Color(0xFF0B1F3A), fontWeight: FontWeight.w600)),
+            child: Text(value, style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600)),
           ),
         ]),
       ]),

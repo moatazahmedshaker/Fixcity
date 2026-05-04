@@ -1,3 +1,4 @@
+import '../theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/problem.dart';
@@ -17,8 +18,8 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
   List<Map<String, dynamic>> _reports = [];
   bool _reportsLoading = true;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _dark  = Color(0xFF1A1A2E);
 
   final _filters = ['all', 'pending', 'in_progress', 'resolved'];
 
@@ -82,7 +83,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
     switch (s) {
       case 'pending':     return const Color(0xFFF59E0B);
       case 'in_progress': return const Color(0xFF1A56DB);
-      case 'resolved':    return _green;
+      case 'resolved':    return kRed;
       default:            return Colors.grey;
     }
   }
@@ -90,7 +91,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
   @override
   Widget build(BuildContext context) {
     if (_profileLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: _green)));
+      return const Scaffold(body: Center(child: CircularProgressIndicator(color: kRed)));
     }
 
     final lang  = appLocale.value.languageCode;
@@ -103,7 +104,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -128,7 +129,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
       body: Column(children: [
         // Filter chips
         Container(
-          color: _navy,
+          color: kDark,
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -146,10 +147,10 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? _green : Colors.white.withOpacity(0.1),
+                        color: isSelected ? kRed : Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: isSelected ? _green : Colors.white.withOpacity(0.2)),
+                            color: isSelected ? kRed : Colors.white.withOpacity(0.2)),
                       ),
                       child: Text('${_filterLabel(f)} ($count)',
                           style: TextStyle(
@@ -169,9 +170,9 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
           child: _district == null
               ? Center(child: Text(isAr ? 'لم يتم تعيين حي لهذا الحساب' : 'No district assigned to this account'))
               : _reportsLoading
-                  ? const Center(child: CircularProgressIndicator(color: _green))
+                  ? const Center(child: CircularProgressIndicator(color: kRed))
                   : RefreshIndicator(
-                      color: _green,
+                      color: kRed,
                       onRefresh: _loadReports,
                       child: filtered.isEmpty
                           ? ListView(children: [
@@ -228,7 +229,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                       const SizedBox(width: 12),
                                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                         Text(description, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _navy)),
+                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kDark)),
                                         const SizedBox(height: 4),
                                         Row(children: [
                                           Container(
@@ -241,9 +242,9 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                           if (hasFixPhoto)
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(color: _green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                              decoration: BoxDecoration(color: kRed.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
                                               child: Text(isAr ? '📷 صورة الإصلاح' : '📷 Fix Photo',
-                                                  style: const TextStyle(fontSize: 10, color: _green, fontWeight: FontWeight.w600)),
+                                                  style: const TextStyle(fontSize: 10, color: kRed, fontWeight: FontWeight.w600)),
                                             ),
                                           if (pingCount > 0 && status != 'resolved') ...[
                                             const SizedBox(width: 6),

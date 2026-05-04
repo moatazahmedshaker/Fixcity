@@ -1,3 +1,4 @@
+import '../theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,8 +22,8 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
   String? _fixPhotoUrl;
   String? _selectedStatus;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _dark  = Color(0xFF1A1A2E);
 
   Future<void> _pickAndUploadFixPhoto(String reportCode) async {
     final picker = ImagePicker();
@@ -38,7 +39,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
       setState(() => _fixPhotoUrl = url);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(appLocale.value.languageCode == 'ar' ? 'تم رفع صورة الإصلاح ✓' : 'Fix photo uploaded ✓'),
-        backgroundColor: _green,
+        backgroundColor: kRed,
         behavior: SnackBarBehavior.floating,
       ));
     } catch (e) {
@@ -91,7 +92,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(appLocale.value.languageCode == 'ar' ? 'تم تحديث البلاغ بنجاح ✓' : 'Report updated successfully ✓'),
-        backgroundColor: _green,
+        backgroundColor: kRed,
         behavior: SnackBarBehavior.floating,
       ));
       await Future.delayed(const Duration(milliseconds: 800));
@@ -131,7 +132,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
     switch (s) {
       case 'pending':    return const Color(0xFFF59E0B);
       case 'in_progress':return const Color(0xFF1A56DB);
-      case 'resolved':   return _green;
+      case 'resolved':   return kRed;
       default:           return Colors.grey;
     }
   }
@@ -142,8 +143,9 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
     final isAr = lang == 'ar';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(isAr ? 'تفاصيل البلاغ' : 'Report Details', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
@@ -153,7 +155,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
         future: supabase.from('reports').select().eq('id', widget.reportId).single(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: _green));
+            return const Center(child: CircularProgressIndicator(color: kRed));
           }
           if (!snap.hasData) return const Center(child: Text('لم يتم العثور على البلاغ'));
 
@@ -204,7 +206,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               // Before photo
               if (problem.photoUrl != null) ...[
                 Text(isAr ? 'صورة المشكلة (قبل)' : 'Problem Photo (Before)',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: kDark)),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
@@ -214,7 +216,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               ],
 
               // Map
-              Text(isAr ? 'الموقع' : 'Location', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
+              Text(isAr ? 'الموقع' : 'Location', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: kDark)),
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
@@ -234,7 +236,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                       MarkerLayer(markers: [
                         Marker(
                           point: LatLng(problem.location.latitude, problem.location.longitude),
-                          child: const Icon(Icons.location_pin, color: _green, size: 36),
+                          child: const Icon(Icons.location_pin, color: kRed, size: 36),
                         ),
                       ]),
                     ],
@@ -248,11 +250,11 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               const SizedBox(height: 24),
 
               // Governor action section
-              Text(isAr ? 'إجراء رئيس الحي' : 'Governor Action', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy)),
+              Text(isAr ? 'إجراء رئيس الحي' : 'Governor Action', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kDark)),
               const SizedBox(height: 16),
 
               // Fix photo upload
-              Text(isAr ? 'صورة الإصلاح (بعد)' : 'Fix Photo (After)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _navy)),
+              Text(isAr ? 'صورة الإصلاح (بعد)' : 'Fix Photo (After)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kDark)),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _uploading ? null : () => _pickAndUploadFixPhoto(problem.reportCode),
@@ -263,7 +265,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: (_fixPhotoUrl ?? existingFixPhoto) != null ? _green : Colors.grey.shade300,
+                      color: (_fixPhotoUrl ?? existingFixPhoto) != null ? kRed : Colors.grey.shade300,
                       width: (_fixPhotoUrl ?? existingFixPhoto) != null ? 2 : 1.5,
                     ),
                   ),
@@ -276,7 +278,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                               top: 8, right: 8,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
                                 child: const Row(mainAxisSize: MainAxisSize.min, children: [
                                   Icon(Icons.check, color: Colors.white, size: 12),
                                   SizedBox(width: 4),
@@ -296,7 +298,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                         )
                       : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                           _uploading
-                              ? const CircularProgressIndicator(color: _green, strokeWidth: 2)
+                              ? const CircularProgressIndicator(color: kRed, strokeWidth: 2)
                               : Icon(Icons.add_photo_alternate_outlined, size: 32, color: Colors.grey.shade300),
                           const SizedBox(height: 8),
                           Text(_uploading ? (isAr ? 'جارٍ الرفع...' : 'Uploading...') : (isAr ? 'ارفع صورة بعد الإصلاح' : 'Upload after fix photo'),
@@ -313,17 +315,17 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                 decoration: InputDecoration(
                   labelText: isAr ? 'ملاحظة (اختياري)' : 'Note (optional)',
                   hintText: isAr ? 'مثال: تم إرسال فريق الصيانة وإصلاح المشكلة' : 'e.g. Maintenance team dispatched and issue resolved',
-                  prefixIcon: const Icon(Icons.edit_note_outlined, color: _green),
+                  prefixIcon: const Icon(Icons.edit_note_outlined, color: kRed),
                   filled: true, fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _green, width: 2)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kRed, width: 2)),
                 ),
               ),
               const SizedBox(height: 16),
 
               // Status dropdown
-              Text(isAr ? 'تغيير الحالة إلى' : 'Change status to', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _navy)),
+              Text(isAr ? 'تغيير الحالة إلى' : 'Change status to', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kDark)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _selectedStatus,
@@ -335,7 +337,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                   filled: true, fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _green, width: 2)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kRed, width: 2)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -346,7 +348,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                 child: ElevatedButton(
                   onPressed: _submitting ? null : () => _submitUpdate(widget.reportId),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _green, foregroundColor: Colors.white,
+                    backgroundColor: kRed, foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
@@ -380,7 +382,7 @@ class _Row extends StatelessWidget {
           const SizedBox(height: 2),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 160),
-            child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B1F3A))),
+            child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
           ),
         ]),
       ]),

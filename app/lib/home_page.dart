@@ -1,3 +1,4 @@
+import 'theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'translations.dart';
@@ -30,9 +31,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _displayPending  = 0;
   late AnimationController _counterCtrl;
 
-  static const _green      = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
-  static const _navy       = Color(0xFF0B1F3A);
+  static const _red      = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
+  static const _dark       = Color(0xFF1A1A2E);
 
   @override
   void initState() {
@@ -114,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(t('snack_logout', lang: appLocale.value.languageCode)),
-        backgroundColor: _green,
+        backgroundColor: kRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ));
@@ -137,7 +138,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: RefreshIndicator(
-        color: _green,
+        color: kRed,
         onRefresh: _refresh,
         child: CustomScrollView(
           slivers: [
@@ -146,11 +147,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               expandedHeight: 200,
               floating: false,
               pinned: true,
-              backgroundColor: _navy,
+              backgroundColor: kDark,
               automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  color: _navy,
+                  color: kDark,
                   padding: const EdgeInsets.fromLTRB(24, 56, 24, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,13 +160,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       Row(children: [
                         Container(
                           width: 36, height: 36,
-                          decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
                           child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
                         ),
                         const SizedBox(width: 10),
                         RichText(text: TextSpan(
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
-                          children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: _greenLight))],
+                          children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
                         )),
                         const Spacer(),
                         _TopBarBtn(label: t('switch_lang', lang: lang), onTap: _toggleLang),
@@ -289,11 +290,11 @@ class _LiveStatsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: const Color(0xFF0B1F3A), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: const Color(0xFF1A1A2E), borderRadius: BorderRadius.circular(16)),
       child: Row(children: [
         _StatCell(value: total,    label: isAr ? 'إجمالي البلاغات' : 'Total Reports', color: Colors.white,            loading: loading),
         _Div(),
-        _StatCell(value: resolved, label: isAr ? 'تم حلها'         : 'Resolved',       color: const Color(0xFF52B788), loading: loading),
+        _StatCell(value: resolved, label: isAr ? 'تم حلها'         : 'Resolved',       color: const Color(0xFF185FA5), loading: loading),
         _Div(),
         _StatCell(value: pending,  label: isAr ? 'قيد الانتظار'    : 'Pending',        color: const Color(0xFFF59E0B), loading: loading),
       ]),
@@ -350,38 +351,47 @@ class _CategoryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(isAr ? 'بلّغ عن مشكلة' : 'Report a Problem',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
-      const SizedBox(height: 10),
-      Row(children: _cats.map((cat) {
-        final icon  = cat['icon']  as IconData;
-        final color = cat['color'] as Color;
-        final key   = cat['key']   as String;
-        return Expanded(
-          child: GestureDetector(
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+      const SizedBox(height: 12),
+      GridView.count(
+        crossAxisCount: 3,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.0,
+        children: _cats.map((cat) {
+          final icon  = cat['icon']  as IconData;
+          final color = cat['color'] as Color;
+          final key   = cat['key']   as String;
+          return GestureDetector(
             onTap: () => Navigator.of(context).pushNamed('/report', arguments: key),
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade100),
               ),
-              child: Column(children: [
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 48, height: 48,
                   decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-                  child: Icon(icon, color: color, size: 20),
+                  child: Icon(icon, color: color, size: 24),
                 ),
                 const SizedBox(height: 8),
-                Text(t(key, lang: lang),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(t(key, lang: lang),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                ),
               ]),
             ),
-          ),
-        );
-      }).toList()),
+          );
+        }).toList(),
+      ),
     ]);
   }
 }
@@ -394,7 +404,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A)));
+    return Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)));
   }
 }
 
@@ -444,7 +454,7 @@ class _CategoryBreakdown extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(t(key, lang: lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B1F3A))),
+                Text(t(key, lang: lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
                 loading
                     ? Container(width: 24, height: 10, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4)))
                     : Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
@@ -510,7 +520,7 @@ class _GreetingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2D6A4F), Color(0xFF52B788)]),
+        gradient: const LinearGradient(colors: [Color(0xFFCC0000), Color(0xFF185FA5)]),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(children: [
@@ -571,7 +581,7 @@ class _ActionCard extends StatelessWidget {
             ]),
             const SizedBox(width: 16),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0B1F3A))),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
               const SizedBox(height: 3),
               Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
             ])),

@@ -1,3 +1,4 @@
+import 'theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/problem.dart';
@@ -15,8 +16,8 @@ class MyReportsPage extends StatefulWidget {
 class _MyReportsPageState extends State<MyReportsPage> {
   final _supabase = Supabase.instance.client;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _dark  = Color(0xFF1A1A2E);
 
   Future<List<Map<String, dynamic>>> _fetchMyReports() async {
     final user = _supabase.auth.currentUser;
@@ -33,7 +34,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
     switch (s) {
       case 'pending':     return const Color(0xFFF59E0B);
       case 'in_progress': return const Color(0xFF1A56DB);
-      case 'resolved':    return _green;
+      case 'resolved':    return kRed;
       default:            return Colors.grey;
     }
   }
@@ -152,7 +153,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: _navy,
+          backgroundColor: kDark,
           foregroundColor: Colors.white,
           elevation: 0,
           title: Text(t('my_reports', lang: lang),
@@ -165,12 +166,12 @@ class _MyReportsPageState extends State<MyReportsPage> {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Container(
                 width: 90, height: 90,
-                decoration: BoxDecoration(color: _green.withOpacity(0.08), shape: BoxShape.circle),
-                child: const Icon(Icons.lock_outlined, size: 44, color: _green),
+                decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+                child: const Icon(Icons.lock_outlined, size: 44, color: kRed),
               ),
               const SizedBox(height: 24),
               Text(isAr ? 'تسجيل الدخول مطلوب' : 'Login Required',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _navy)),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kDark)),
               const SizedBox(height: 8),
               Text(
                 isAr ? 'يجب تسجيل الدخول لعرض بلاغاتك' : 'You need to log in to view your reports',
@@ -185,7 +186,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   icon: const Icon(Icons.login_outlined, size: 18),
                   label: Text(isAr ? 'تسجيل الدخول' : 'Log In'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _green, foregroundColor: Colors.white,
+                    backgroundColor: kRed, foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
@@ -200,12 +201,13 @@ class _MyReportsPageState extends State<MyReportsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(t('my_reports', lang: lang),
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchMyReports(),
@@ -223,7 +225,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
               TextButton(
                 onPressed: () => setState(() {}),
                 child: Text(isAr ? 'حاول مجدداً' : 'Try again',
-                    style: const TextStyle(color: _green)),
+                    style: const TextStyle(color: kRed)),
               ),
             ]));
           }
@@ -232,7 +234,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
           if (reports.isEmpty) return _EmptyReports(isAr: isAr);
 
           return RefreshIndicator(
-            color: _green,
+            color: kRed,
             onRefresh: () async => setState(() {}),
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -266,7 +268,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                         const SizedBox(width: 14),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(problem.title,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: kDark),
                               maxLines: 1, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 5),
                           Row(children: [
@@ -280,11 +282,11 @@ class _MyReportsPageState extends State<MyReportsPage> {
                             if (hasFixPhoto)
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(color: _green.withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
+                                decoration: BoxDecoration(color: kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
                                 child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                                  Icon(Icons.check_circle, color: _green, size: 10),
+                                  Icon(Icons.check_circle, color: kRed, size: 10),
                                   SizedBox(width: 3),
-                                  Text('تم الإصلاح', style: TextStyle(fontSize: 9, color: _green, fontWeight: FontWeight.w600)),
+                                  Text('تم الإصلاح', style: TextStyle(fontSize: 9, color: kRed, fontWeight: FontWeight.w600)),
                                 ]),
                               ),
                             const SizedBox(width: 6),
@@ -339,7 +341,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(problem.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kDark),
                     maxLines: 2, overflow: TextOverflow.ellipsis),
                 Text(t(problem.status, lang: lang),
                     style: TextStyle(fontSize: 12, color: sc, fontWeight: FontWeight.w600)),
@@ -366,7 +368,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                 if (problem.photoUrl != null) ...[
                   Align(alignment: Alignment.centerRight,
                       child: Text(isAr ? 'صورة المشكلة' : 'Problem Photo',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _navy))),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: kDark))),
                   const SizedBox(height: 6),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
@@ -380,12 +382,12 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: _green.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
                     child: Row(children: [
-                      const Icon(Icons.check_circle, color: _green, size: 18),
+                      const Icon(Icons.check_circle, color: kRed, size: 18),
                       const SizedBox(width: 8),
                       Text(isAr ? '✅ تم الإصلاح — صورة الإصلاح:' : '✅ Fixed — After photo:',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _green)),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: kRed)),
                     ]),
                   ),
                   const SizedBox(height: 6),
@@ -449,8 +451,8 @@ class _MyReportsPageState extends State<MyReportsPage> {
                     icon: const Icon(Icons.manage_search_outlined, size: 18),
                     label: Text(isAr ? 'تابع هذا البلاغ' : 'Track this report'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: _green,
-                      side: const BorderSide(color: _green),
+                      foregroundColor: kRed,
+                      side: const BorderSide(color: kRed),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -479,12 +481,12 @@ class _EmptyReports extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
             width: 100, height: 100,
-            decoration: BoxDecoration(color: const Color(0xFF2D6A4F).withOpacity(0.08), shape: BoxShape.circle),
-            child: const Icon(Icons.folder_open_outlined, size: 48, color: Color(0xFF2D6A4F)),
+            decoration: BoxDecoration(color: const Color(0xFFCC0000).withOpacity(0.08), shape: BoxShape.circle),
+            child: const Icon(Icons.folder_open_outlined, size: 48, color: Color(0xFFCC0000)),
           ),
           const SizedBox(height: 24),
           Text(isAr ? 'لا توجد بلاغات بعد' : 'No reports yet',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A))),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
           const SizedBox(height: 8),
           Text(isAr ? 'بلاغاتك ستظهر هنا بعد تقديمها' : 'Your submitted reports will appear here',
               textAlign: TextAlign.center,
@@ -497,7 +499,7 @@ class _EmptyReports extends StatelessWidget {
               icon: const Icon(Icons.add, size: 18),
               label: Text(isAr ? 'تقديم أول بلاغ' : 'Submit your first report'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D6A4F), foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFFCC0000), foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
@@ -590,7 +592,7 @@ class _DetailRow extends StatelessWidget {
             const SizedBox(height: 2),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 140),
-              child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B1F3A))),
+              child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
             ),
           ]),
         ]),

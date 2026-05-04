@@ -1,3 +1,4 @@
+import 'theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'translations.dart';
@@ -16,9 +17,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
-  static const _navy = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
+  static const _dark = Color(0xFF1A1A2E);
 
   Future<void> _login() async {
     setState(() => _isLoading = true);
@@ -94,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Container(
             height: 4,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [_green, _greenLight]),
+              gradient: LinearGradient(colors: [kRed, kBlue]),
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
           ),
@@ -110,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   FixMobileLogo(isAr: isAr),
                   Text(isAr ? 'مرحباً بعودتك' : 'Welcome back',
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: _navy, letterSpacing: -0.5)),
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: kDark, letterSpacing: -0.5)),
                   const SizedBox(height: 6),
                   Text(isAr ? 'سجّل الدخول للمتابعة' : 'Sign in to your FixCity account',
                       style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
@@ -130,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: _green))
+                      ? const Center(child: CircularProgressIndicator(color: kRed))
                       : FixGreenButton(label: t('login', lang: lang), onPressed: _login),
                   const SizedBox(height: 20),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -139,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                     GestureDetector(
                       onTap: () => Navigator.of(context).pushNamed('/signup'),
                       child: Text(t('signup', lang: lang),
-                          style: const TextStyle(color: _green, fontWeight: FontWeight.w600, fontSize: 13)),
+                          style: const TextStyle(color: kRed, fontWeight: FontWeight.w600, fontSize: 13)),
                     ),
                   ]),
                 ],
@@ -157,14 +158,14 @@ class _LoginPageState extends State<LoginPage> {
 class FixHeroPanel extends StatelessWidget {
   final bool isAr;
   const FixHeroPanel({super.key, required this.isAr});
-  static const _green = Color(0xFF2D6A4F);
-  static const _greenLight = Color(0xFF52B788);
-  static const _navy = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _redLight = Color(0xFF185FA5);
+  static const _dark = Color(0xFF1A1A2E);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: _navy),
+      decoration: const BoxDecoration(color: kDark),
       padding: const EdgeInsets.all(48),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,36 +174,36 @@ class FixHeroPanel extends StatelessWidget {
           Row(children: [
             Container(
               width: 44, height: 44,
-              decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.location_pin, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 12),
             RichText(text: TextSpan(
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-              children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: _greenLight))],
+              children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
             )),
           ]),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: _green.withOpacity(0.2),
-                border: Border.all(color: _greenLight.withOpacity(0.4)),
+                color: kRed.withOpacity(0.2),
+                border: Border.all(color: kBlue.withOpacity(0.4)),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 6, height: 6, decoration: const BoxDecoration(color: _greenLight, shape: BoxShape.circle)),
+                Container(width: 6, height: 6, decoration: const BoxDecoration(color: kBlue, shape: BoxShape.circle)),
                 const SizedBox(width: 8),
                 Text(isAr ? 'منصة الخدمات البلدية' : 'Municipal Services Platform',
-                    style: const TextStyle(color: _greenLight, fontSize: 11, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(color: kBlue, fontSize: 11, fontWeight: FontWeight.w600)),
               ]),
             ),
             const SizedBox(height: 20),
             RichText(text: TextSpan(
               style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: Colors.white, height: 1.15, letterSpacing: -1),
               children: isAr
-                  ? [const TextSpan(text: 'أبلغ.\nتابع.\n'), TextSpan(text: 'احلّ.', style: TextStyle(color: _greenLight))]
-                  : [const TextSpan(text: 'Report.\nTrack.\n'), TextSpan(text: 'Resolve.', style: TextStyle(color: _greenLight))],
+                  ? [const TextSpan(text: 'أبلغ.\nتابع.\n'), TextSpan(text: 'احلّ.', style: TextStyle(color: kBlue))]
+                  : [const TextSpan(text: 'Report.\nTrack.\n'), TextSpan(text: 'Resolve.', style: TextStyle(color: kBlue))],
             )),
             const SizedBox(height: 20),
             Text(
@@ -246,13 +247,13 @@ class FixMobileLogo extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 38, height: 38,
-          decoration: BoxDecoration(color: const Color(0xFF2D6A4F), borderRadius: BorderRadius.circular(9)),
+          decoration: BoxDecoration(color: const Color(0xFFCC0000), borderRadius: BorderRadius.circular(9)),
           child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
         ),
         const SizedBox(width: 10),
         RichText(text: const TextSpan(
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF0B1F3A)),
-          children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFF2D6A4F)))],
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+          children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFFCC0000)))],
         )),
       ]),
     );
@@ -267,6 +268,8 @@ class FixField extends StatelessWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final int maxLines;
+  final VoidCallback? onTap;
+
 
   const FixField({
     super.key,
@@ -278,6 +281,7 @@ class FixField extends StatelessWidget {
     this.keyboardType,
     this.suffixIcon,
     this.maxLines = 1,
+    this.onTap,
   });
 
   @override
@@ -290,7 +294,8 @@ class FixField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         maxLines: obscureText ? 1 : maxLines,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF0B1F3A)),
+        onTap: onTap,
+        style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey.shade300, fontSize: 14),
@@ -301,7 +306,7 @@ class FixField extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5)),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2D6A4F), width: 2)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFCC0000), width: 2)),
         ),
       ),
     ]);
@@ -316,16 +321,19 @@ class FixGreenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, height: 50,
+      width: double.infinity,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2D6A4F),
+          backgroundColor: const Color(0xFFCC0000),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        child: Text(label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
       ),
     );
   }

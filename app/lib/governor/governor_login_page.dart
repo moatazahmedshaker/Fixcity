@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../login_page.dart';
 import '../main.dart';
+import '../theme.dart';
 
 class GovernorLoginPage extends StatefulWidget {
   const GovernorLoginPage({super.key});
@@ -9,50 +11,42 @@ class GovernorLoginPage extends StatefulWidget {
 }
 
 class _GovernorLoginPageState extends State<GovernorLoginPage> {
-  final supabase = Supabase.instance.client;
-  final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
-  bool _loading = false;
-  bool _obscure = true;
-
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  final _email    = TextEditingController();
+  final _password = TextEditingController();
+  bool _loading   = false;
+  bool _obscure   = true;
 
   Future<void> _login() async {
-    if (_emailCtrl.text.trim().isEmpty || _passCtrl.text.isEmpty) return;
+    final lang = appLocale.value.languageCode;
+    final isAr = lang == 'ar';
+    if (_email.text.isEmpty || _password.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(isAr ? 'الرجاء ملء جميع الحقول' : 'Please fill all fields'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
     setState(() => _loading = true);
     try {
-      final res = await supabase.auth.signInWithPassword(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text,
+      final res = await Supabase.instance.client.auth.signInWithPassword(
+        email: _email.text.trim(), password: _password.text.trim(),
       );
       if (res.user == null) throw Exception('Login failed');
-
-      final profile = await supabase
-          .from('profiles')
-          .select('is_governor, governor_district')
-          .eq('id', res.user!.id)
-          .single();
-
+      final profile = await Supabase.instance.client
+          .from('profiles').select('is_governor').eq('id', res.user!.id).single();
       if (profile['is_governor'] != true) {
-        await supabase.auth.signOut();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(appLocale.value.languageCode == 'ar' ? 'هذا الحساب ليس حساب رئيس حي' : 'This account is not a governor account'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
+        await Supabase.instance.client.auth.signOut();
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isAr ? 'هذا الحساب ليس حساب رئيس حي' : 'This account is not a governor account'),
+          backgroundColor: Colors.red, behavior: SnackBarBehavior.floating,
         ));
         return;
       }
-
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/governor/dashboard');
+      if (mounted) Navigator.of(context).pushReplacementNamed('/governor/dashboard');
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('فشل تسجيل الدخول: $e'),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${appLocale.value.languageCode == 'ar' ? 'فشل تسجيل الدخول' : 'Login failed'}: $e'),
+        backgroundColor: Colors.red, behavior: SnackBarBehavior.floating,
       ));
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -61,87 +55,81 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = appLocale.value.languageCode;
+    final isAr = lang == 'ar';
+
     return Scaffold(
-      backgroundColor: _navy,
+      resizeToAvoidBottomInset: true,
+      backgroundColor: kDark,
       body: SafeArea(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top),
             child: Column(children: [
-              Container(
-                width: 72, height: 72,
-                decoration: BoxDecoration(color: _green.withOpacity(0.2), shape: BoxShape.circle),
-                child: const Icon(Icons.location_city, color: _green, size: 36),
-              ),
-              const SizedBox(height: 16),
-              Text(appLocale.value.languageCode == 'ar' ? 'بوابة رئيس الحي' : 'Governor Portal', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
-              const SizedBox(height: 6),
-              Text(appLocale.value.languageCode == 'ar' ? 'تسجيل الدخول لإدارة بلاغات حيّك' : 'Login to manage your district reports',
-                  style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.6))),
-            ]),
-          ),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF5F7FA),
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
-              ),
-              padding: const EdgeInsets.all(28),
-              child: Column(children: [
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: appLocale.value.languageCode == 'ar' ? 'البريد الإلكتروني' : 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined, color: _green),
-                    filled: true, fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _green, width: 2)),
+              // Hero section
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 32),
+                child: Column(children: [
+                  Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(color: kRed.withOpacity(0.2), shape: BoxShape.circle),
+                    child: const Icon(Icons.location_city_outlined, color: kRed, size: 40),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passCtrl,
-                  obscureText: _obscure,
-                  decoration: InputDecoration(
-                    labelText: appLocale.value.languageCode == 'ar' ? 'كلمة المرور' : 'Password',
-                    prefixIcon: const Icon(Icons.lock_outlined, color: _green),
+                  const SizedBox(height: 20),
+                  Text(isAr ? 'بوابة رئيس الحي' : 'Governor Portal',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: kWhite)),
+                  const SizedBox(height: 8),
+                  Text(isAr ? 'تسجيل الدخول لإدارة بلاغات حيّك' : 'Login to manage your district reports',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.6))),
+                ]),
+              ),
+
+              // Form card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(color: kWhite, borderRadius: BorderRadius.circular(20)),
+                child: Column(children: [
+                  FixField(
+                    controller: _email,
+                    label: isAr ? 'البريد الإلكتروني' : 'Email',
+                    hint: isAr ? 'example@fixcity.gov' : 'example@fixcity.gov',
+                    icon: Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  FixField(
+                    controller: _password,
+                    label: isAr ? 'كلمة المرور' : 'Password',
+                    hint: '••••••••',
+                    icon: Icons.lock_outline,
+                    obscureText: _obscure,
                     suffixIcon: IconButton(
-                      icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+                      icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 18, color: kGrey),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
-                    filled: true, fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _green, width: 2)),
                   ),
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity, height: 52,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _green, foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    child: _loading
-                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(appLocale.value.languageCode == 'ar' ? 'دخول' : 'Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 24),
+                  _loading
+                      ? const CircularProgressIndicator(color: kRed)
+                      : FixGreenButton(
+                          label: isAr ? 'دخول' : 'Login',
+                          onPressed: _login,
+                        ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pushReplacementNamed('/admin'),
+                    child: Text(isAr ? 'تسجيل دخول الإدارة' : 'Admin Login',
+                        style: const TextStyle(color: kGrey, fontSize: 13)),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pushReplacementNamed('/admin'),
-                  child: Text(appLocale.value.languageCode == 'ar' ? 'تسجيل دخول الإدارة' : 'Admin Login', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                ),
-              ]),
-            ),
+                ]),
+              ),
+              const SizedBox(height: 40),
+            ]),
           ),
-        ]),
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import '../theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../login_page.dart';
@@ -18,8 +19,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   bool _obscure   = true;
   String _errorMessage = '';
 
-  static const _green = Color(0xFF2D6A4F);
-  static const _navy  = Color(0xFF0B1F3A);
+  static const _red   = Color(0xFFCC0000);
+  static const _dark  = Color(0xFF1A1A2E);
 
   Future<void> _login() async {
     setState(() { _isLoading = true; _errorMessage = ''; });
@@ -80,9 +81,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _navy,
+      backgroundColor: kDark,
       appBar: AppBar(
-        backgroundColor: _navy,
+        backgroundColor: kDark,
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
@@ -110,7 +111,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               // Logo
               Container(
                 width: 64, height: 64,
-                decoration: BoxDecoration(color: _green, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(16)),
                 child: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 34),
               ),
               const SizedBox(height: 16),
@@ -134,12 +135,12 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   Container(
                     height: 3, margin: const EdgeInsets.only(bottom: 24),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [_green, Color(0xFF52B788)]),
+                      gradient: const LinearGradient(colors: [kRed, Color(0xFF185FA5)]),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                   const Text('Sign In',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _navy)),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kDark)),
                   const SizedBox(height: 4),
                   Text('Authorized municipal staff only',
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
@@ -187,7 +188,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
                   const SizedBox(height: 24),
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: _green))
+                      ? const Center(child: CircularProgressIndicator(color: kRed))
                       : FixGreenButton(label: 'Sign In to Admin Panel', onPressed: _login),
                   const SizedBox(height: 16),
 
