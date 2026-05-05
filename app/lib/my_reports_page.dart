@@ -180,11 +180,10 @@ class _MyReportsPageState extends State<MyReportsPage> {
               ),
               const SizedBox(height: 28),
               SizedBox(
-                width: double.infinity, height: 50,
-                child: ElevatedButton.icon(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pushNamed('/login'),
-                  icon: const Icon(Icons.login_outlined, size: 18),
-                  label: Text(isAr ? 'تسجيل الدخول' : 'Log In'),
+                  child: Text(isAr ? 'تسجيل الدخول' : 'Log In', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kRed, foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

@@ -116,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(isAr ? 'سجّل الدخول للمتابعة' : 'Sign in to your FixCity account',
                       style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
                   const SizedBox(height: 32),
-                  FixField(controller: _emailController, label: t('email', lang: lang), hint: 'you@email.com', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+                  FixField(controller: _emailController, label: t('email', lang: lang), hint: 'you@email.com', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next),
                   const SizedBox(height: 16),
                   FixField(
                     controller: _passwordController,
@@ -124,6 +124,8 @@ class _LoginPageState extends State<LoginPage> {
                     hint: '••••••••',
                     icon: Icons.lock_outline,
                     obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: _login,
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.grey, size: 20),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),

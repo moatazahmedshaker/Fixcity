@@ -52,7 +52,8 @@ class MyApp extends StatelessWidget {
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             child: child!,
           ),
-          theme: dark ? ThemeData(
+          themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+          darkTheme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
             colorScheme: const ColorScheme.dark(
@@ -65,12 +66,13 @@ class MyApp extends StatelessWidget {
               error:       Color(0xFFEF4444),
               onError:     Colors.white,
             ),
-            scaffoldBackgroundColor: Color(0xFF0D0D0D),
-            cardColor: Color(0xFF1E1E1E),
+            scaffoldBackgroundColor: const Color(0xFF0D0D0D),
+            cardColor: const Color(0xFF1E1E1E),
             appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF1A1A2E), foregroundColor: Colors.white, centerTitle: true, elevation: 0),
             elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: kRed, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0)),
             inputDecorationTheme: InputDecorationTheme(filled: true, fillColor: const Color(0xFF2A2A2A), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF444444), width: 1.5)), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kBlue, width: 2)), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-          ) : ThemeData(
+          ),
+          theme: ThemeData(
             useMaterial3: true,
             colorScheme: const ColorScheme.light(
               primary:     kRed,

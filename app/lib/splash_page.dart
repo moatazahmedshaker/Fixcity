@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'theme.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -15,36 +16,31 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late Animation<double> _contentOpacity;
   late Animation<Offset> _contentSlide;
 
-  // Step 0 = language picker, Step 1+ = onboarding pages
   int _step = 0;
   int _currentPage = 0;
   final PageController _pageController = PageController();
 
-  static const _red      = Color(0xFFCC0000);
-  static const _redLight = Color(0xFF185FA5);
-  static const _dark       = Color(0xFF1A1A2E);
-
   final List<_OnboardingData> _pages = [
     _OnboardingData(
       icon: Icons.location_pin,
-      titleAr: 'أبلغ بسهولة',       titleEn: 'Report Easily',
+      titleAr: 'أبلغ بسهولة', titleEn: 'Report Easily',
       subtitleAr: 'التقط صورة، حدد الموقع، وأرسل بلاغك في ثوانٍ',
       subtitleEn: 'Take a photo, pin the location, and submit in seconds',
       color: kRed,
     ),
     _OnboardingData(
       icon: Icons.manage_search_outlined,
-      titleAr: 'تابع بلاغاتك',      titleEn: 'Track Your Reports',
+      titleAr: 'تابع بلاغاتك', titleEn: 'Track Your Reports',
       subtitleAr: 'استخدم الكود الخاص بك لمتابعة حالة بلاغك لحظة بلحظة',
       subtitleEn: 'Use your unique code to follow your report status in real time',
-      color: const Color(0xFF1A56DB),
+      color: kBlue,
     ),
     _OnboardingData(
       icon: Icons.check_circle_outline,
-      titleAr: 'مدينتك أفضل',       titleEn: 'Better City',
+      titleAr: 'مدينتك أفضل', titleEn: 'Better City',
       subtitleAr: 'مساهمتك تُحدث فرقًا حقيقيًا في حياة جميع المواطنين',
       subtitleEn: 'Your contribution makes a real difference for everyone in the city',
-      color: _greenLight,
+      color: kSuccess,
     ),
   ];
 
@@ -53,12 +49,10 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     super.initState();
     _logoController    = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
     _contentController = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-
     _logoScale    = CurvedAnimation(parent: _logoController,    curve: Curves.elasticOut).drive(Tween(begin: 0.0, end: 1.0));
     _logoOpacity  = CurvedAnimation(parent: _logoController,    curve: Curves.easeIn).drive(Tween(begin: 0.0, end: 1.0));
     _contentOpacity = CurvedAnimation(parent: _contentController, curve: Curves.easeIn).drive(Tween(begin: 0.0, end: 1.0));
     _contentSlide   = CurvedAnimation(parent: _contentController, curve: Curves.easeOut).drive(Tween(begin: const Offset(0, 0.3), end: Offset.zero));
-
     _logoController.forward().then((_) => _contentController.forward());
   }
 
@@ -91,7 +85,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     final isAr = lang == 'ar';
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF1A1A2E),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -102,14 +96,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           ),
         ),
         child: SafeArea(
-        child: _step == 0
-            ? _buildLanguagePicker()
-            : _buildOnboarding(isAr),
+          child: _step == 0 ? _buildLanguagePicker() : _buildOnboarding(isAr),
+        ),
       ),
     );
   }
-
-  // ── Language Picker ────────────────────────────────────────────────────────
 
   Widget _buildLanguagePicker() {
     return FadeTransition(
@@ -118,67 +109,44 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
         position: _contentSlide,
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo
-              ScaleTransition(
-                scale: _logoScale,
-                child: FadeTransition(
-                  opacity: _logoOpacity,
-                  child: Column(children: [
-                    Container(
-                      width: 72, height: 72,
-                      decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(18)),
-                      child: const Icon(Icons.location_pin, color: Colors.white, size: 38),
-                    ),
-                    const SizedBox(height: 16),
-                    RichText(text: TextSpan(
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1),
-                      children: [
-                        const TextSpan(text: 'Fix'),
-                        TextSpan(text: 'City', style: TextStyle(color: _greenLight)),
-                      ],
-                    )),
-                  ]),
-                ),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ScaleTransition(
+              scale: _logoScale,
+              child: FadeTransition(
+                opacity: _logoOpacity,
+                child: Column(children: [
+                  Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(18)),
+                    child: const Icon(Icons.location_pin, color: Colors.white, size: 38),
+                  ),
+                  const SizedBox(height: 16),
+                  RichText(text: const TextSpan(
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1),
+                    children: [
+                      TextSpan(text: 'Fix'),
+                      TextSpan(text: 'City', style: TextStyle(color: kBlue)),
+                    ],
+                  )),
+                ]),
               ),
-              const SizedBox(height: 60),
-
-              // Language prompt — shown in both languages
-              const Text('Choose your language', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 8),
-              const Text('اختر لغتك', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 32),
-
-              // English button
-              _LangButton(
-                flag: '🇬🇧',
-                label: 'English',
-                sublabel: 'Continue in English',
-                onTap: () => _selectLanguage('en'),
-              ),
-              const SizedBox(height: 14),
-
-              // Arabic button
-              _LangButton(
-                flag: '🇪🇬',
-                label: 'العربية',
-                sublabel: 'تابع باللغة العربية',
-                onTap: () => _selectLanguage('ar'),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 60),
+            const Text('Choose your language', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            const Text('اختر لغتك', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 32),
+            _LangButton(flag: '🇬🇧', label: 'English',  sublabel: 'Continue in English',    onTap: () => _selectLanguage('en')),
+            const SizedBox(height: 14),
+            _LangButton(flag: '🇪🇬', label: 'العربية', sublabel: 'تابع باللغة العربية',     onTap: () => _selectLanguage('ar')),
+          ]),
         ),
       ),
     );
   }
 
-  // ── Onboarding ─────────────────────────────────────────────────────────────
-
   Widget _buildOnboarding(bool isAr) {
     return Column(children: [
-      // Top bar
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -189,11 +157,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               child: const Icon(Icons.location_pin, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 8),
-            RichText(text: TextSpan(
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+            RichText(text: const TextSpan(
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
               children: [
-                const TextSpan(text: 'Fix'),
-                TextSpan(text: 'City', style: TextStyle(color: _greenLight)),
+                TextSpan(text: 'Fix'),
+                TextSpan(text: 'City', style: TextStyle(color: kBlue)),
               ],
             )),
           ]),
@@ -205,8 +173,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             ),
         ]),
       ),
-
-      // Pages
       Expanded(
         child: PageView.builder(
           controller: _pageController,
@@ -215,12 +181,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           itemBuilder: (context, i) => _OnboardingPage(data: _pages[i], isAr: isAr),
         ),
       ),
-
-      // Bottom controls
       Padding(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
         child: Column(children: [
-          // Dots
           Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(_pages.length, (i) {
             final active = i == _currentPage;
             return AnimatedContainer(
@@ -228,7 +191,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: active ? 24 : 8, height: 8,
               decoration: BoxDecoration(
-                color: active ? _greenLight : Colors.white.withOpacity(0.2),
+                color: active ? kRed : Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -239,8 +202,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             child: ElevatedButton(
               onPressed: _next,
               style: ElevatedButton.styleFrom(
-                backgroundColor: kRed,
-                foregroundColor: Colors.white,
+                backgroundColor: kRed, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
@@ -257,8 +219,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     ]);
   }
 }
-
-// ── Language Button ────────────────────────────────────────────────────────
 
 class _LangButton extends StatelessWidget {
   final String flag, label, sublabel;
@@ -291,8 +251,6 @@ class _LangButton extends StatelessWidget {
     );
   }
 }
-
-// ── Onboarding Page ────────────────────────────────────────────────────────
 
 class _OnboardingPage extends StatelessWidget {
   final _OnboardingData data;
@@ -334,7 +292,4 @@ class _OnboardingData {
     required this.icon, required this.titleAr, required this.titleEn,
     required this.subtitleAr, required this.subtitleEn, required this.color,
   });
-    ),
-    );
-  }
 }

@@ -18,6 +18,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
   final supabase = Supabase.instance.client;
   final _noteCtrl = TextEditingController();
   bool _uploading = false;
+  Map<String, dynamic>? _cachedReport;
   bool _submitting = false;
   String? _fixPhotoUrl;
   String? _selectedStatus;
@@ -354,7 +355,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                   ),
                   child: _submitting
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text(isAr ? 'حفظ التحديث' : 'Save Update', textAlign: TextAlign.center,, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : Text(isAr ? 'حفظ التحديث' : 'Save Update', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 24),

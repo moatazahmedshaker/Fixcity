@@ -150,7 +150,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
         // District filter
         Container(
-          color: const Color(0xFF16213E),
+          color: kDark,
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: DropdownButtonFormField<String>(
             value: _filterDistrict,

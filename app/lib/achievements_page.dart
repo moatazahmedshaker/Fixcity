@@ -22,9 +22,11 @@ class _AchievementsPageState extends State<AchievementsPage> {
     _load();
   }
 
+  bool _isGuest = false;
+
   Future<void> _load() async {
     final user = _supabase.auth.currentUser;
-    if (user == null) { setState(() => _loading = false); return; }
+    if (user == null) { setState(() { _loading = false; _isGuest = true; }); return; }
     try {
       final profile = await _supabase.from('profiles').select('points').eq('id', user.id).single();
       final reports = await _supabase.from('reports').select('status').eq('user_id', user.id);
@@ -63,7 +65,9 @@ class _AchievementsPageState extends State<AchievementsPage> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: kRed))
-          : SingleChildScrollView(
+          : _isGuest
+              ? _GuestView(isAr: isAr)
+              : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(children: [
                 // Points card
@@ -149,4 +153,56 @@ class _StatChip extends StatelessWidget {
       Text(label,  style: TextStyle(fontSize: 11, color: kWhite.withOpacity(0.6))),
     ]),
   );
+}
+
+class _GuestView extends StatelessWidget {
+  final bool isAr;
+  const _GuestView({required this.isAr});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+            width: 90, height: 90,
+            decoration: BoxDecoration(color: kRed.withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.emoji_events_outlined, size: 44, color: kRed),
+          ),
+          const SizedBox(height: 20),
+          Text(isAr ? 'سجّل دخول لعرض إنجازاتك 🏆' : 'Login to see your badges 🏆',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kDark)),
+          const SizedBox(height: 8),
+          Text(isAr ? 'اكسب نقاطاً وافتح الأوسمة بتقديم البلاغات'
+                    : 'Earn points and unlock badges by submitting reports',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: kGrey, height: 1.6)),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/login'),
+              child: Text(isAr ? 'تسجيل الدخول' : 'Log In',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/signup'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: kBlue, side: const BorderSide(color: kBlue),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(isAr ? 'إنشاء حساب' : 'Create Account',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 }

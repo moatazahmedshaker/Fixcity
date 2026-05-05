@@ -40,8 +40,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         automaticallyImplyLeading: false,
       ),
       body: user == null
-          ? Center(child: Text(isAr ? 'سجل دخول أولاً' : 'Please login first',
-              style: const TextStyle(color: kGrey)))
+          ? _GuestView(isAr: isAr)
           : FutureBuilder<List<Map<String, dynamic>>>(
               future: _fetchNotifications(),
               builder: (context, snap) {
@@ -98,6 +97,58 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 );
               },
             ),
+    );
+  }
+}
+
+class _GuestView extends StatelessWidget {
+  final bool isAr;
+  const _GuestView({required this.isAr});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+            width: 90, height: 90,
+            decoration: BoxDecoration(color: kBlue.withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.notifications_outlined, size: 44, color: kBlue),
+          ),
+          const SizedBox(height: 20),
+          Text(isAr ? 'سجّل دخول لعرض الإشعارات 🔔' : 'Login to see your alerts 🔔',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kDark)),
+          const SizedBox(height: 8),
+          Text(isAr ? 'ستصلك إشعارات عند تحديث حالة بلاغاتك'
+                    : "You'll get notified when your report status changes",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: kGrey, height: 1.6)),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/login'),
+              child: Text(isAr ? 'تسجيل الدخول' : 'Log In',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/signup'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: kBlue, side: const BorderSide(color: kBlue),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(isAr ? 'إنشاء حساب' : 'Create Account',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }

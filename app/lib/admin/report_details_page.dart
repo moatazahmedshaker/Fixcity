@@ -21,6 +21,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
   final List<String> _statuses = ['pending', 'in_progress', 'resolved'];
   String? _selectedStatus;
   bool _isLoading = false;
+  Map<String, dynamic>? _reportData;
 
   String _statusLabel(String s, String lang) {
     final isAr = lang == 'ar';
@@ -137,15 +138,22 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: supabase.from('reports').select().eq('id', widget.reportId).single(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return const Center(child: CircularProgressIndicator(color: kRed));
-          if (!snapshot.hasData)
-            return Center(child: Text(isAr ? 'لم يتم العثور على البلاغ' : 'Report not found'));
-
-          final data    = snapshot.data!;
+      body: _reportData == null
+          ? FutureBuilder<Map<String, dynamic>>(
+              future: supabase.from('reports').select().eq('id', widget.reportId).single(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  return const Center(child: CircularProgressIndicator(color: kRed));
+                if (!snapshot.hasData)
+                  return Center(child: Text(isAr ? 'لم يتم العثور على البلاغ' : 'Report not found'));
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => _reportData = snapshot.data!);
+                });
+                return const Center(child: CircularProgressIndicator(color: kRed));
+              },
+            )
+          : Builder(builder: (context) {
+          final data    = _reportData!;
           final problem = Problem.fromSupabase(data);
           _selectedStatus ??= problem.status;
           final sc       = _statusColor(problem.status);
@@ -330,8 +338,7 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
               const SizedBox(height: 32),
             ]),
           );
-        },
-      ),
+        }),
     );
   }
 }
