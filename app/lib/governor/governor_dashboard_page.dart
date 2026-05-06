@@ -102,7 +102,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
         : _reports.where((r) => r['status'] == _filter).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kDark,
         foregroundColor: Colors.white,
@@ -192,7 +192,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                               ]),
                             ])
                           : ListView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                               itemCount: filtered.length,
                               itemBuilder: (context, i) {
                                 final r        = filtered[i];

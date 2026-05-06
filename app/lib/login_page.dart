@@ -16,6 +16,8 @@ class _LoginPageState extends State<LoginPage> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
 
   static const _red   = Color(0xFFCC0000);
   static const _redLight = Color(0xFF185FA5);
@@ -50,6 +52,8 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -70,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _wideLayout(bool isAr, String lang) {
     return Row(children: [
       Expanded(child: FixHeroPanel(isAr: isAr)),
-      Expanded(child: _formCard(isAr, lang)),
+      Expanded(child: _formCard(isAr, lang, wide: true)),
     ]);
   }
 
@@ -82,75 +86,76 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _formCard(bool isAr, String lang) {
+  Widget _formCard(bool isAr, String lang, {bool wide = false}) {
+    final content = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FixMobileLogo(isAr: isAr),
+              Text(isAr ? 'مرحباً بعودتك' : 'Welcome back',
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: kDark, letterSpacing: -0.5)),
+              const SizedBox(height: 6),
+              Text(isAr ? 'سجّل الدخول للمتابعة' : 'Sign in to your FixCity account',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+              const SizedBox(height: 32),
+              FixField(controller: _emailController, label: t('email', lang: lang), hint: 'you@email.com', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next, focusNode: _emailFocus, onSubmitted: () => FocusScope.of(context).requestFocus(_passwordFocus)),
+              const SizedBox(height: 16),
+              FixField(
+                controller: _passwordController,
+                label: t('password', lang: lang),
+                hint: '••••••••',
+                icon: Icons.lock_outline,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                onSubmitted: _login,
+                focusNode: _passwordFocus,
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.grey, size: 20),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: kRed))
+                  : FixGreenButton(label: t('login', lang: lang), onPressed: _login),
+              const SizedBox(height: 20),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(isAr ? 'ليس لديك حساب؟ ' : "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pushNamed('/signup'),
+                  child: Text(t('signup', lang: lang),
+                      style: const TextStyle(color: kRed, fontWeight: FontWeight.w600, fontSize: 13)),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
     return Container(
-      height: MediaQuery.of(context).size.height,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
       ),
-      child: Stack(children: [
-        Positioned(
-          top: 0, left: 0, right: 0,
-          child: Container(
+      child: Column(
+        mainAxisSize: wide ? MainAxisSize.max : MainAxisSize.min,
+        children: [
+          Container(
             height: 4,
             decoration: const BoxDecoration(
               gradient: LinearGradient(colors: [kRed, kBlue]),
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
           ),
-        ),
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  FixMobileLogo(isAr: isAr),
-                  Text(isAr ? 'مرحباً بعودتك' : 'Welcome back',
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: kDark, letterSpacing: -0.5)),
-                  const SizedBox(height: 6),
-                  Text(isAr ? 'سجّل الدخول للمتابعة' : 'Sign in to your FixCity account',
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
-                  const SizedBox(height: 32),
-                  FixField(controller: _emailController, label: t('email', lang: lang), hint: 'you@email.com', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next),
-                  const SizedBox(height: 16),
-                  FixField(
-                    controller: _passwordController,
-                    label: t('password', lang: lang),
-                    hint: '••••••••',
-                    icon: Icons.lock_outline,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: _login,
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.grey, size: 20),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: kRed))
-                      : FixGreenButton(label: t('login', lang: lang), onPressed: _login),
-                  const SizedBox(height: 20),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(isAr ? 'ليس لديك حساب؟ ' : "Don't have an account? ",
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pushNamed('/signup'),
-                      child: Text(t('signup', lang: lang),
-                          style: const TextStyle(color: kRed, fontWeight: FontWeight.w600, fontSize: 13)),
-                    ),
-                  ]),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ]),
+          wide ? Expanded(child: content) : content,
+        ],
+      ),
     );
   }
 }
@@ -286,10 +291,12 @@ class FixField extends StatelessWidget {
     this.onTap,
     this.textInputAction,
     this.onSubmitted,
+    this.focusNode,
   });
 
   final TextInputAction? textInputAction;
   final VoidCallback? onSubmitted;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +309,7 @@ class FixField extends StatelessWidget {
         keyboardType: keyboardType,
         maxLines: obscureText ? 1 : maxLines,
         textInputAction: textInputAction,
+        focusNode: focusNode,
         onFieldSubmitted: onSubmitted != null ? (_) => onSubmitted!() : null,
         onTap: onTap,
         style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),

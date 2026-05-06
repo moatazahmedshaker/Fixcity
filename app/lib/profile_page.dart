@@ -141,7 +141,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: kRed))
           : user == null
-              ? _GuestView(isAr: isAr)
+              ? _GuestView(isAr: isAr, icon: Icons.person_outline, titleAr: 'حسابي', titleEn: 'My Profile', subtitleAr: 'سجّل دخول للوصول إلى حسابك الشخصي', subtitleEn: 'Login to access your account')
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(children: [
@@ -237,65 +237,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-class _GuestView extends StatelessWidget {
-  final bool isAr;
-  const _GuestView({required this.isAr});
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            width: 90, height: 90,
-            decoration: BoxDecoration(color: kBlue.withOpacity(0.1), shape: BoxShape.circle),
-            child: const Icon(Icons.person_outline, size: 44, color: kBlue),
-          ),
-          const SizedBox(height: 20),
-          Text(isAr ? 'مرحباً، أنت زائر 👋' : 'Hi there, Guest 👋',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kDark)),
-          const SizedBox(height: 8),
-          Text(
-            isAr
-                ? 'سجّل دخول للوصول إلى حسابك وبلاغاتك وإنجازاتك'
-                : 'Login to access your account, reports and achievements',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, color: kGrey, height: 1.6),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed('/login'),
-              icon: const Icon(Icons.login_outlined, size: 18),
-              label: Text(isAr ? 'تسجيل الدخول' : 'Log In'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kRed, foregroundColor: kWhite,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed('/signup'),
-              icon: const Icon(Icons.person_add_outlined, size: 18, color: kBlue),
-              label: Text(isAr ? 'إنشاء حساب جديد' : 'Create Account',
-                  style: const TextStyle(color: kBlue)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: kBlue),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-}
 
 class _Card extends StatelessWidget {
   final List<Widget> children;
@@ -347,4 +288,53 @@ class _InfoRow extends StatelessWidget {
       ]),
     ]),
   );
+}
+class _GuestView extends StatelessWidget {
+  final bool isAr;
+  final IconData icon;
+  final String titleAr, titleEn, subtitleAr, subtitleEn;
+  const _GuestView({required this.isAr, required this.icon, required this.titleAr,
+      required this.titleEn, required this.subtitleAr, required this.subtitleEn});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 40, 40, 100),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(width: 96, height: 96,
+              decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+              child: Icon(icon, size: 48, color: kRed)),
+          const SizedBox(height: 24),
+          Text(isAr ? titleAr : titleEn, textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kDark)),
+          const SizedBox(height: 10),
+          Text(isAr ? subtitleAr : subtitleEn, textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: kGrey, height: 1.6)),
+          const SizedBox(height: 32),
+          SizedBox(width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/login'),
+              style: ElevatedButton.styleFrom(backgroundColor: kRed, foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+              child: Text(isAr ? 'تسجيل الدخول' : 'Log In',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context).pushNamed('/signup'),
+              style: OutlinedButton.styleFrom(foregroundColor: kBlue,
+                  side: const BorderSide(color: kBlue, width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: Text(isAr ? 'إنشاء حساب جديد' : 'Create Account',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 }

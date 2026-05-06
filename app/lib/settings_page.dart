@@ -36,22 +36,6 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-              // ── Appearance ────────────────────────────────────────────
-              _SectionHeader(label: isAr ? 'المظهر' : 'Appearance', dark: dark),
-              const SizedBox(height: 10),
-              _SettingsCard(color: cardColor, children: [
-                _SwitchTile(
-                  icon: Icons.dark_mode_outlined,
-                  title: isAr ? 'الوضع الداكن' : 'Dark Mode',
-                  subtitle: isAr ? 'تفعيل المظهر الداكن' : 'Enable dark theme',
-                  value: dark,
-                  textColor: textColor,
-                  subColor: subColor,
-                  onChanged: (v) => isDarkMode.value = v,
-                ),
-              ]),
-              const SizedBox(height: 20),
-
               // ── Language ──────────────────────────────────────────────
               _SectionHeader(label: isAr ? 'اللغة' : 'Language', dark: dark),
               const SizedBox(height: 10),
@@ -154,28 +138,6 @@ class _SettingsCard extends StatelessWidget {
   );
 }
 
-class _SwitchTile extends StatelessWidget {
-  final IconData icon;
-  final String title, subtitle;
-  final bool value;
-  final Color textColor, subColor;
-  final ValueChanged<bool> onChanged;
-  const _SwitchTile({required this.icon, required this.title, required this.subtitle,
-      required this.value, required this.textColor, required this.subColor, required this.onChanged});
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    child: Row(children: [
-      Icon(icon, color: kBlue, size: 22),
-      const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor)),
-        Text(subtitle, style: TextStyle(fontSize: 11, color: subColor)),
-      ])),
-      Switch(value: value, activeColor: kRed, onChanged: onChanged),
-    ]),
-  );
-}
 
 class _TapTile extends StatelessWidget {
   final IconData icon;

@@ -18,6 +18,17 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   bool _isLoading = false;
   bool _obscure   = true;
   String _errorMessage = '';
+  final _emailFocus    = FocusNode();
+  final _passwordFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
+  }
 
   static const _red   = Color(0xFFCC0000);
   static const _dark  = Color(0xFF1A1A2E);
@@ -104,11 +115,18 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           ),
         ],
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+      body: Column(children: [
+        Container(
+          height: 4,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(colors: [kRed, Color(0xFF185FA5)]),
+          ),
+        ),
+        Expanded(child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
             child: Column(children: [
               // Logo
               Container(
@@ -133,14 +151,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 ),
                 padding: const EdgeInsets.all(28),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  // Top accent bar
-                  Container(
-                    height: 3, margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [kRed, Color(0xFF185FA5)]),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
                   const Text('Sign In',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kDark)),
                   const SizedBox(height: 4),
@@ -154,6 +164,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     hint: 'staff@municipality.gov',
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    focusNode: _emailFocus,
+                    onSubmitted: () => FocusScope.of(context).requestFocus(_passwordFocus),
                   ),
                   const SizedBox(height: 16),
                   FixField(
@@ -162,6 +175,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     hint: '••••••••',
                     icon: Icons.lock_outline,
                     obscureText: _obscure,
+                    textInputAction: TextInputAction.done,
+                    focusNode: _passwordFocus,
+                    onSubmitted: _login,
                     suffixIcon: IconButton(
                       icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                           color: Colors.grey, size: 20),
@@ -224,7 +240,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
             ]),
           ),
         ),
-      ),
-    );
+      )),
+    ]),
+  );
   }
 }

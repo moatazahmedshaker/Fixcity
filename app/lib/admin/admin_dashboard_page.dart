@@ -88,7 +88,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final resolved   = _allReports.where((r) => r['status'] == 'resolved').length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kDark,
         foregroundColor: Colors.white,
@@ -184,7 +184,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       color: kRed,
                       onRefresh: _loadReports,
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final data    = filtered[index];

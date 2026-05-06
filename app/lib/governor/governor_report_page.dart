@@ -18,13 +18,20 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
   final supabase = Supabase.instance.client;
   final _noteCtrl = TextEditingController();
   bool _uploading = false;
-  Map<String, dynamic>? _cachedReport;
   bool _submitting = false;
   String? _fixPhotoUrl;
   String? _selectedStatus;
+  late final Future<Map<String, dynamic>> _reportFuture;
 
-  static const _red   = Color(0xFFCC0000);
-  static const _dark  = Color(0xFF1A1A2E);
+  @override
+  void initState() {
+    super.initState();
+    _reportFuture = supabase
+        .from('reports')
+        .select()
+        .eq('id', widget.reportId)
+        .single();
+  }
 
   Future<void> _pickAndUploadFixPhoto(String reportCode) async {
     final picker = ImagePicker();
@@ -153,7 +160,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
         centerTitle: true,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: supabase.from('reports').select().eq('id', widget.reportId).single(),
+        future: _reportFuture,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: kRed));
@@ -166,7 +173,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
           final existingFixPhoto = r['fix_photo_url'] as String?;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
               // Status badge

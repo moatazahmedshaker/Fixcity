@@ -15,6 +15,35 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
   final _password = TextEditingController();
   bool _loading   = false;
   bool _obscure   = true;
+  final _emailFocus    = FocusNode();
+  final _passwordFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkSession() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+    try {
+      final p = await Supabase.instance.client
+          .from('profiles').select('is_governor').eq('id', user.id).single();
+      if (p['is_governor'] == true && mounted) {
+        Navigator.of(context).pushReplacementNamed('/governor/dashboard');
+      }
+    } catch (_) {}
+  }
 
   Future<void> _login() async {
     // Sign out any existing citizen session first
@@ -62,7 +91,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: kDark,
+      backgroundColor: const Color(0xFF1A1A2E),
       body: SafeArea(
         child: SingleChildScrollView(
           child: ConstrainedBox(
@@ -99,6 +128,9 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                     hint: isAr ? 'example@fixcity.gov' : 'example@fixcity.gov',
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    focusNode: _emailFocus,
+                    onSubmitted: () => FocusScope.of(context).requestFocus(_passwordFocus),
                   ),
                   const SizedBox(height: 16),
                   FixField(
@@ -107,6 +139,9 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                     hint: '••••••••',
                     icon: Icons.lock_outline,
                     obscureText: _obscure,
+                    textInputAction: TextInputAction.done,
+                    focusNode: _passwordFocus,
+                    onSubmitted: _login,
                     suffixIcon: IconButton(
                       icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                           size: 18, color: kGrey),
