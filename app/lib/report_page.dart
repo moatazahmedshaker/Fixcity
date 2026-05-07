@@ -25,14 +25,33 @@ class District {
 }
 
 const List<District> kDistricts = [
-  District(nameAr: 'حي النزهة',       nameEn: 'Al Nuzha',       governorName: 'م. أحمد السيد',    governorPhone: '0100-000-0001'),
-  District(nameAr: 'حي المعادي',      nameEn: 'Maadi',          governorName: 'م. خالد محمود',   governorPhone: '0100-000-0002'),
-  District(nameAr: 'حي مصر الجديدة', nameEn: 'Heliopolis',     governorName: 'م. طارق علي',     governorPhone: '0100-000-0003'),
-  District(nameAr: 'حي الزيتون',      nameEn: 'Al Zeitoun',     governorName: 'م. محمد حسن',     governorPhone: '0100-000-0004'),
-  District(nameAr: 'حي عين شمس',      nameEn: 'Ain Shams',      governorName: 'م. عمرو إبراهيم', governorPhone: '0100-000-0005'),
-  District(nameAr: 'حي التجمع الأول', nameEn: 'First Settlement',governorName: 'م. سامي رضا',    governorPhone: '0100-000-0006'),
-  District(nameAr: 'حي بدر',          nameEn: 'Badr',            governorName: 'م. يوسف فاروق',  governorPhone: '0100-000-0007'),
-  District(nameAr: 'حي الشروق',       nameEn: 'Al Shorouk',     governorName: 'م. هاني كمال',    governorPhone: '0100-000-0008'),
+  // ── التجمع الأول ──
+  District(nameAr: 'الأربع مجاورات والميراج',      nameEn: 'Al-Arba Mogarawet & Mirage',  governorName: 'خالد عقل علي عبد الستار',  governorPhone: '01000000000'),
+  District(nameAr: 'المستثمرين الشمالية والرحاب',  nameEn: 'North Mostasmerin & Rehab',   governorName: 'محمد فتحي محمد نور الدين', governorPhone: '01000000000'),
+  District(nameAr: 'شمال الرحاب',                  nameEn: 'North Rehab',                 governorName: 'محمد عبد الله محمد',       governorPhone: '01000000000'),
+  District(nameAr: 'الشباب الشمالي',               nameEn: 'North Shabab',                governorName: 'محمد فؤاد أمين',           governorPhone: '01000000000'),
+  District(nameAr: 'الشباب الجنوبي',               nameEn: 'South Shabab',                governorName: 'محمد فكري فتحي',           governorPhone: '01000000000'),
+  District(nameAr: 'البنفسج',                      nameEn: 'Al-Banafseg',                 governorName: 'أحمد فتحي',                governorPhone: '01000000000'),
+  District(nameAr: 'القرنفل',                      nameEn: 'Al-Qaranful',                 governorName: 'خالد سيد رضا',             governorPhone: '01000000000'),
+  // ── التجمع الثالث ──
+  District(nameAr: 'النقابات',                     nameEn: 'Al-Niqabat',                  governorName: 'محمد فتحي السيد',          governorPhone: '01000000000'),
+  District(nameAr: 'المحليات',                     nameEn: 'Al-Mahalliyat',               governorName: 'سامح محمد محمود',          governorPhone: '01000000000'),
+  District(nameAr: 'بيت الوطن 1-4',               nameEn: 'Beit Al-Watan 1-4',           governorName: 'إيهاب صالح أمين',          governorPhone: '01000000000'),
+  District(nameAr: 'بيت الوطن 5-8',               nameEn: 'Beit Al-Watan 5-8',           governorName: 'محمد أحمد مراد',           governorPhone: '01000000000'),
+  District(nameAr: 'تمر حنة',                      nameEn: 'Tamar Hanna',                 governorName: 'صفوت شعبان موسى',          governorPhone: '01000000000'),
+  District(nameAr: 'الأندلس',                      nameEn: 'Al-Andalus',                  governorName: 'محمد أحمد صالح',           governorPhone: '01000000000'),
+  District(nameAr: 'حي الشباب',                    nameEn: 'Hay Al-Shabab',               governorName: 'عصام محمد أحمد',           governorPhone: '01000000000'),
+  District(nameAr: 'حي الجولف',                    nameEn: 'Golf District',               governorName: 'حسين أبو سريع',            governorPhone: '01000000000'),
+  District(nameAr: 'المنطقة الصناعية',             nameEn: 'Industrial Zone',             governorName: 'سيد النجار',               governorPhone: '01000000000'),
+  // ── التجمع الخامس ──
+  District(nameAr: 'النرجس',                       nameEn: 'Al-Narjis',                   governorName: 'وليد بكير أحمد',           governorPhone: '01000000000'),
+  District(nameAr: 'اللوتس',                       nameEn: 'Al-Lotus',                    governorName: 'سمير عبد المأمون شحاتة',   governorPhone: '01000000000'),
+  District(nameAr: 'المستثمرين الجنوبية',          nameEn: 'South Mostasmerin',           governorName: 'شريف مكرم غبريال',         governorPhone: '01000000000'),
+  District(nameAr: 'مركز المدينة',                 nameEn: 'City Center',                 governorName: 'رضا السيد سعد',            governorPhone: '01000000000'),
+  District(nameAr: 'الحي الخامس والشويفات',        nameEn: 'District 5 & Shweifat',       governorName: 'وائل عبد الراضي إسماعيل', governorPhone: '01000000000'),
+  District(nameAr: 'جنوب الأكاديمية',              nameEn: 'South Academy',               governorName: 'إيهاب حسن حسن',           governorPhone: '01000000000'),
+  District(nameAr: 'الحي الرابع',                  nameEn: 'Fourth District',             governorName: 'محمد زكي عبد النبي',       governorPhone: '01000000000'),
+  District(nameAr: 'الحي الثالث',                  nameEn: 'Third District',              governorName: 'محمد سلامة الجزار',        governorPhone: '01000000000'),
 ];
 
 // ── Page ───────────────────────────────────────────────────────────────────
