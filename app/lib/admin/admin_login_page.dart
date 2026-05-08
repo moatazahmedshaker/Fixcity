@@ -70,7 +70,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       if (!mounted) return;
 
       if (isAdmin) {
-        Navigator.of(context).pushReplacementNamed('/admin/dashboard');
+        Navigator.of(context).pushNamedAndRemoveUntil('/admin/dashboard', (_) => false);
       } else {
         // Not an admin — sign them out and show error
         await supabase.auth.signOut();

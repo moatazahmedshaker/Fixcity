@@ -42,7 +42,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   void _logout() async {
     await supabase.auth.signOut();
-    if (mounted) Navigator.of(context).pushReplacementNamed('/admin');
+    if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
   }
 
   Color _statusColor(String s) {
@@ -87,7 +87,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final inProgress = _allReports.where((r) => r['status'] == 'in_progress').length;
     final resolved   = _allReports.where((r) => r['status'] == 'resolved').length;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) {
+          await supabase.auth.signOut();
+          if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+        }
+      },
+      child: Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kDark,
@@ -246,7 +254,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
         ),
       ]),
-    );
+    ));
   }
 }
 

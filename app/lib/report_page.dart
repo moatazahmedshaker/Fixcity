@@ -26,6 +26,7 @@ class District {
 
 const List<District> kDistricts = [
   // ── التجمع الأول ──
+  District(nameAr: 'الياسمين – شرق الأكاديمية',         nameEn: 'Yasmin – East Academy',       governorName: '',                         governorPhone: '01000000000'),
   District(nameAr: 'الأربع مجاورات والميراج',      nameEn: 'Al-Arba Mogarawet & Mirage',  governorName: 'خالد عقل علي عبد الستار',  governorPhone: '01000000000'),
   District(nameAr: 'المستثمرين الشمالية والرحاب',  nameEn: 'North Mostasmerin & Rehab',   governorName: 'محمد فتحي محمد نور الدين', governorPhone: '01000000000'),
   District(nameAr: 'شمال الرحاب',                  nameEn: 'North Rehab',                 governorName: 'محمد عبد الله محمد',       governorPhone: '01000000000'),
@@ -221,7 +222,7 @@ Respond with ONLY the category key. Example: cat_pothole
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCC0000).withOpacity(0.08),
+                    color: const Color(0xFFCC0000).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Column(children: [
@@ -240,7 +241,7 @@ Respond with ONLY the category key. Example: cat_pothole
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A2E).withOpacity(0.06),
+                    color: const Color(0xFF1A1A2E).withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Column(children: [
@@ -363,7 +364,7 @@ Respond with ONLY the category key. Example: cat_pothole
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               width: 56, height: 56,
-              decoration: BoxDecoration(color: kRed.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: const Icon(Icons.send_outlined, color: kRed, size: 28),
             ),
             const SizedBox(height: 16),
@@ -543,7 +544,7 @@ Respond with ONLY the category key. Example: cat_pothole
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: kDark,
+        backgroundColor: kBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(t('report_page_title', lang: lang),
@@ -672,7 +673,7 @@ Respond with ONLY the category key. Example: cat_pothole
                               width: 50, height: 50,
                               point: _selectedLocation,
                               child: Container(
-                                decoration: BoxDecoration(color: kRed.withOpacity(0.15), shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: kRed.withValues(alpha: 0.15), shape: BoxShape.circle),
                                 child: const Icon(Icons.location_pin, color: kRed, size: 32),
                               ),
                             ),
@@ -758,7 +759,7 @@ class _DistrictDropdown extends StatelessWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                      color: isSelected ? kRed.withOpacity(0.05) : Colors.transparent,
+                      color: isSelected ? kRed.withValues(alpha: 0.05) : Colors.transparent,
                       child: Row(children: [
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(isAr ? d.nameAr : d.nameEn,
@@ -852,7 +853,7 @@ class _AIClassifyButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF1A3A5C)]),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: const Color(0xFF1A1A2E).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: const Color(0xFF1A1A2E).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           if (isLoading)
@@ -910,14 +911,14 @@ class _CategoryGrid extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: isSelected ? color.withOpacity(0.1) : Colors.white,
+              color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected ? color : (isAISuggested ? const Color(0xFF185FA5) : Colors.grey.shade200),
                 width: isSelected ? 2 : 1.5,
               ),
               boxShadow: isSelected
-                  ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))]
+                  ? [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2))]
                   : [],
             ),
             child: Stack(children: [

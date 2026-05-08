@@ -153,46 +153,21 @@ class _MyReportsPageState extends State<MyReportsPage> {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: kDark,
+          backgroundColor: kBlue,
           foregroundColor: Colors.white,
           elevation: 0,
           title: Text(t('my_reports', lang: lang),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           centerTitle: true,
+          automaticallyImplyLeading: false,
         ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Container(
-                width: 90, height: 90,
-                decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
-                child: const Icon(Icons.lock_outlined, size: 44, color: kRed),
-              ),
-              const SizedBox(height: 24),
-              Text(isAr ? 'تسجيل الدخول مطلوب' : 'Login Required',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kDark)),
-              const SizedBox(height: 8),
-              Text(
-                isAr ? 'يجب تسجيل الدخول لعرض بلاغاتك' : 'You need to log in to view your reports',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade400, height: 1.5),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pushNamed('/login'),
-                  child: Text(isAr ? 'تسجيل الدخول' : 'Log In', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kRed, foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ]),
-          ),
+        body: _GuestView(
+          isAr: isAr,
+          icon: Icons.folder_outlined,
+          titleAr: 'بلاغاتي',
+          titleEn: 'My Reports',
+          subtitleAr: 'سجّل دخول لعرض بلاغاتك ومتابعة حالتها',
+          subtitleEn: 'Login to view and track your submitted reports',
         ),
       );
     }
@@ -200,7 +175,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: kDark,
+        backgroundColor: kBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(t('my_reports', lang: lang),
@@ -261,7 +236,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                       child: Row(children: [
                         Container(
                           width: 48, height: 48,
-                          decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                           child: Icon(si, color: sc, size: 24),
                         ),
                         const SizedBox(width: 14),
@@ -273,7 +248,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                           Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                              decoration: BoxDecoration(color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
                               child: Text(t(problem.status, lang: lang),
                                   style: TextStyle(fontSize: 10, color: sc, fontWeight: FontWeight.w600)),
                             ),
@@ -281,7 +256,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                             if (hasFixPhoto)
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(color: kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
+                                decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(20)),
                                 child: const Row(mainAxisSize: MainAxisSize.min, children: [
                                   Icon(Icons.check_circle, color: kRed, size: 10),
                                   SizedBox(width: 3),
@@ -334,7 +309,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
             child: Row(children: [
               Container(
                 width: 44, height: 44,
-                decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                 child: Icon(si, color: sc, size: 22),
               ),
               const SizedBox(width: 12),
@@ -381,7 +356,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
                     child: Row(children: [
                       const Icon(Icons.check_circle, color: kRed, size: 18),
                       const SizedBox(width: 8),
@@ -480,7 +455,7 @@ class _EmptyReports extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
             width: 100, height: 100,
-            decoration: BoxDecoration(color: const Color(0xFFCC0000).withOpacity(0.08), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: const Color(0xFFCC0000).withValues(alpha: 0.08), shape: BoxShape.circle),
             child: const Icon(Icons.folder_open_outlined, size: 48, color: Color(0xFFCC0000)),
           ),
           const SizedBox(height: 24),
@@ -614,7 +589,7 @@ class _GuestView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(40, 40, 40, 100),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(width: 96, height: 96,
-              decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), shape: BoxShape.circle),
               child: Icon(icon, size: 48, color: kRed)),
           const SizedBox(height: 24),
           Text(isAr ? titleAr : titleEn, textAlign: TextAlign.center,

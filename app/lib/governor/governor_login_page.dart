@@ -73,7 +73,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
         ));
         return;
       }
-      if (mounted) Navigator.of(context).pushReplacementNamed('/governor/dashboard');
+      if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/governor/dashboard', (_) => false);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${appLocale.value.languageCode == 'ar' ? 'فشل تسجيل الدخول' : 'Login failed'}: $e'),

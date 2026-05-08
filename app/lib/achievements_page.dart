@@ -57,7 +57,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kDark,
+        backgroundColor: kBlue,
         title: Text(isAr ? 'الإنجازات' : 'Achievements',
             style: const TextStyle(color: kWhite, fontWeight: FontWeight.w700)),
         centerTitle: true,
@@ -82,7 +82,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                     const Text('⭐', style: TextStyle(fontSize: 48)),
                     const SizedBox(height: 8),
                     Text('$_points', style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w900, color: kWhite)),
-                    Text(isAr ? 'نقطة' : 'Points', style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.6))),
+                    Text(isAr ? 'نقطة' : 'Points', style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6))),
                     const SizedBox(height: 16),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       _StatChip(value: '$_reportCount',   label: isAr ? 'بلاغ' : 'Reports'),
@@ -111,7 +111,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                       decoration: BoxDecoration(
                         color: earned ? kWhite : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: earned ? kRed.withOpacity(0.3) : Colors.grey.shade200),
+                        border: Border.all(color: earned ? kRed.withValues(alpha: 0.3) : Colors.grey.shade200),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -147,10 +147,10 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(color: kWhite.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+    decoration: BoxDecoration(color: kWhite.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
     child: Column(children: [
       Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kWhite)),
-      Text(label,  style: TextStyle(fontSize: 11, color: kWhite.withOpacity(0.6))),
+      Text(label,  style: TextStyle(fontSize: 11, color: kWhite.withValues(alpha: 0.6))),
     ]),
   );
 }
@@ -167,7 +167,7 @@ class _GuestView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(40, 40, 40, 100),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(width: 96, height: 96,
-              decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), shape: BoxShape.circle),
               child: Icon(icon, size: 48, color: kRed)),
           const SizedBox(height: 24),
           Text(isAr ? titleAr : titleEn, textAlign: TextAlign.center,

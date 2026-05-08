@@ -101,7 +101,15 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
         ? _reports
         : _reports.where((r) => r['status'] == _filter).toList();
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) {
+          await supabase.auth.signOut();
+          if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+        }
+      },
+      child: Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kDark,
@@ -121,7 +129,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
             onPressed: () async {
               await supabase.auth.signOut();
               if (!mounted) return;
-              Navigator.of(context).pushReplacementNamed('/governor');
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
             },
           ),
         ],
@@ -269,6 +277,6 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                     ),
         ),
       ]),
-    );
+    ));
   }
 }

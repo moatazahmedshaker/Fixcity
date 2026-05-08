@@ -85,94 +85,111 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     final isAr = lang == 'ar';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), kBg],
-            stops: [0.0, 0.55, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: _step == 0 ? _buildLanguagePicker() : _buildOnboarding(isAr),
-        ),
-      ),
+      backgroundColor: kBg,
+      body: _step == 0 ? _buildLanguagePicker() : _buildOnboarding(isAr),
     );
   }
 
   Widget _buildLanguagePicker() {
-    return FadeTransition(
-      opacity: _contentOpacity,
-      child: SlideTransition(
-        position: _contentSlide,
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            ScaleTransition(
-              scale: _logoScale,
-              child: FadeTransition(
-                opacity: _logoOpacity,
-                child: Column(children: [
+    return Column(children: [
+      // Red top half — logo
+      Expanded(
+        flex: 5,
+        child: Container(
+          width: double.infinity,
+          color: kRed,
+          child: SafeArea(
+            bottom: false,
+            child: FadeTransition(
+              opacity: _logoOpacity,
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Container(
-                    width: 72, height: 72,
-                    decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(18)),
-                    child: const Icon(Icons.location_pin, color: Colors.white, size: 38),
+                    width: 88, height: 88,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+                    ),
+                    child: const Icon(Icons.location_pin, color: Colors.white, size: 46),
                   ),
-                  const SizedBox(height: 16),
-                  RichText(text: const TextSpan(
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1),
-                    children: [
-                      TextSpan(text: 'Fix'),
-                      TextSpan(text: 'City', style: TextStyle(color: kBlue)),
-                    ],
+                  const SizedBox(height: 20),
+                  const Text('FixCity', style: TextStyle(
+                    fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1,
                   )),
+                  const SizedBox(height: 8),
+                  Text('مدينتك أفضل', style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.8))),
+                  Text('Building Better Cities', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.6))),
                 ]),
               ),
             ),
-            const SizedBox(height: 60),
-            const Text('Choose your language', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            const Text('اختر لغتك', style: TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 32),
-            _LangButton(flag: '🇬🇧', label: 'English',  sublabel: 'Continue in English',    onTap: () => _selectLanguage('en')),
-            const SizedBox(height: 14),
-            _LangButton(flag: '🇪🇬', label: 'العربية', sublabel: 'تابع باللغة العربية',     onTap: () => _selectLanguage('ar')),
-          ]),
+          ),
         ),
       ),
-    );
+
+      // White bottom half — language picker
+      Expanded(
+        flex: 4,
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: FadeTransition(
+            opacity: _contentOpacity,
+            child: SlideTransition(
+              position: _contentSlide,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Text('Choose your language', style: TextStyle(fontSize: 15, color: kGrey, fontWeight: FontWeight.w500)),
+                  const Text('اختر لغتك', style: TextStyle(fontSize: 15, color: kGrey, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 24),
+                  _LangButton(flag: '🇬🇧', label: 'English',  sublabel: 'Continue in English',  onTap: () => _selectLanguage('en')),
+                  const SizedBox(height: 12),
+                  _LangButton(flag: '🇪🇬', label: 'العربية', sublabel: 'تابع باللغة العربية',   onTap: () => _selectLanguage('ar')),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ]);
   }
 
   Widget _buildOnboarding(bool isAr) {
     return Column(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Row(children: [
-            Container(
-              width: 32, height: 32,
-              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.location_pin, color: Colors.white, size: 18),
-            ),
-            const SizedBox(width: 8),
-            RichText(text: const TextSpan(
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
-              children: [
-                TextSpan(text: 'Fix'),
-                TextSpan(text: 'City', style: TextStyle(color: kBlue)),
-              ],
-            )),
-          ]),
-          if (_currentPage < _pages.length - 1)
-            TextButton(
-              onPressed: _skip,
-              child: Text(isAr ? 'تخطي' : 'Skip',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
-            ),
-        ]),
+      // Blue top bar
+      Container(
+        color: kBlue,
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Row(children: [
+              Container(
+                width: 30, height: 30,
+                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
+                child: const Icon(Icons.location_pin, color: Colors.white, size: 17),
+              ),
+              const SizedBox(width: 8),
+              const Text('Fix', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text('City', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.6))),
+              const Spacer(),
+              if (_currentPage < _pages.length - 1)
+                TextButton(
+                  onPressed: _skip,
+                  child: Text(isAr ? 'تخطي' : 'Skip',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
+                ),
+            ]),
+          ),
+        ),
       ),
+
+      // Onboarding pages
       Expanded(
         child: PageView.builder(
           controller: _pageController,
@@ -181,8 +198,12 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           itemBuilder: (context, i) => _OnboardingPage(data: _pages[i], isAr: isAr),
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+
+      // Dots + button
+      SafeArea(
+        top: false,
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
         child: Column(children: [
           Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(_pages.length, (i) {
             final active = i == _currentPage;
@@ -191,7 +212,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: active ? 24 : 8, height: 8,
               decoration: BoxDecoration(
-                color: active ? kRed : Colors.white.withOpacity(0.2),
+                color: active ? kRed : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -215,7 +236,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             ),
           ),
         ]),
-      ),
+      )),
     ]);
   }
 }
@@ -231,21 +252,21 @@ class _LangButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.07),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.15)),
+          color: kBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(children: [
-          Text(flag, style: const TextStyle(fontSize: 28)),
-          const SizedBox(width: 16),
+          Text(flag, style: const TextStyle(fontSize: 26)),
+          const SizedBox(width: 14),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-            Text(sublabel, style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5))),
+            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kDark)),
+            Text(sublabel, style: const TextStyle(fontSize: 12, color: kGrey)),
           ]),
           const Spacer(),
-          Icon(Icons.arrow_forward_ios, color: Colors.white.withOpacity(0.3), size: 16),
+          const Icon(Icons.arrow_forward_ios, color: kGrey, size: 14),
         ]),
       ),
     );
@@ -265,20 +286,20 @@ class _OnboardingPage extends StatelessWidget {
         Container(
           width: 140, height: 140,
           decoration: BoxDecoration(
-            color: data.color.withOpacity(0.12),
+            color: data.color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
-            border: Border.all(color: data.color.withOpacity(0.3), width: 2),
+            border: Border.all(color: data.color.withValues(alpha: 0.3), width: 2),
           ),
           child: Icon(data.icon, size: 64, color: data.color),
         ),
         const SizedBox(height: 48),
         Text(isAr ? data.titleAr : data.titleEn,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5)),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: kDark, letterSpacing: -0.5)),
         const SizedBox(height: 16),
         Text(isAr ? data.subtitleAr : data.subtitleEn,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.white.withOpacity(0.6), height: 1.6)),
+            style: const TextStyle(fontSize: 15, color: kGrey, height: 1.6)),
       ]),
     );
   }

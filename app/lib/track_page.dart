@@ -71,7 +71,7 @@ class TrackPageState extends State<TrackPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: kDark,
+        backgroundColor: kBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(t('track_page_title', lang: lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
@@ -184,14 +184,14 @@ class _ResultView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(children: [
             Container(
               width: 52, height: 52,
-              decoration: BoxDecoration(color: color.withOpacity(0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
               child: Icon(statusIcon(problem.status), color: color, size: 28),
             ),
             const SizedBox(width: 16),
@@ -240,7 +240,7 @@ class _ResultView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFCC0000).withOpacity(0.1),
+              color: const Color(0xFFCC0000).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [

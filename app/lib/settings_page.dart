@@ -26,7 +26,7 @@ class SettingsPage extends StatelessWidget {
         return Scaffold(
           backgroundColor: bgColor,
           appBar: AppBar(
-            backgroundColor: kDark,
+            backgroundColor: kBlue,
             title: Text(isAr ? 'الإعدادات' : 'Settings',
                 style: const TextStyle(color: kWhite, fontWeight: FontWeight.w700)),
             centerTitle: true,

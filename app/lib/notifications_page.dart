@@ -33,7 +33,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kDark,
+        backgroundColor: kBlue,
         title: Text(isAr ? 'الإشعارات' : 'Notifications',
             style: const TextStyle(color: kWhite, fontWeight: FontWeight.w700)),
         centerTitle: true,
@@ -69,13 +69,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       decoration: BoxDecoration(
                         color: kWhite,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: read ? Colors.grey.shade100 : kRed.withOpacity(0.3)),
+                        border: Border.all(color: read ? Colors.grey.shade100 : kRed.withValues(alpha: 0.3)),
                       ),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Container(
                           width: 40, height: 40,
                           decoration: BoxDecoration(
-                            color: kBlue.withOpacity(0.1),
+                            color: kBlue.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.notifications_outlined, color: kBlue, size: 20),
@@ -113,7 +113,7 @@ class _GuestView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(40, 40, 40, 100),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(width: 96, height: 96,
-              decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), shape: BoxShape.circle),
               child: Icon(icon, size: 48, color: kRed)),
           const SizedBox(height: 24),
           Text(isAr ? titleAr : titleEn, textAlign: TextAlign.center,

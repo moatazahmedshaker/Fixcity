@@ -16,7 +16,7 @@ class MainScaffold extends StatefulWidget {
   State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _MainScaffoldState extends State<MainScaffold> {
+class _MainScaffoldState extends State<MainScaffold> with RouteAware {
   late int _currentIndex;
   int _unreadCount = 0;
 
@@ -25,6 +25,22 @@ class _MainScaffoldState extends State<MainScaffold> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _loadUnread();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPopNext() => setState(() {});
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
   }
 
   Future<void> _loadUnread() async {
@@ -65,20 +81,20 @@ class _MainScaffoldState extends State<MainScaffold> {
               body: IndexedStack(key: ValueKey(lang), index: _currentIndex, children: pages),
               bottomNavigationBar: Container(
                 decoration: BoxDecoration(
-                  color: dark ? const Color(0xFF1E1E1E) : kDark,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, -3))],
+                  color: dark ? const Color(0xFF1E1E1E) : Colors.white,
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12, offset: const Offset(0, -2))],
                 ),
                 child: SafeArea(
                   child: SizedBox(
                     height: 62,
                     child: Row(
                       children: [
-                        _NavItem(icon: Icons.home_outlined,          activeIcon: Icons.home,             label: isAr ? 'الرئيسية'  : 'Home',         index: 0, current: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
-                        _NavItem(icon: Icons.folder_outlined,        activeIcon: Icons.folder,           label: isAr ? 'بلاغاتي'   : 'Reports',      index: 1, current: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
-                        _NavItem(icon: Icons.notifications_outlined, activeIcon: Icons.notifications,    label: isAr ? 'الإشعارات' : 'Alerts',        index: 2, current: _currentIndex, badge: _unreadCount, onTap: (i) { setState(() { _currentIndex = i; _unreadCount = 0; }); }),
-                        _NavItem(icon: Icons.emoji_events_outlined,  activeIcon: Icons.emoji_events,     label: isAr ? 'الإنجازات' : 'Badges',        index: 3, current: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
-                        _NavItem(icon: Icons.person_outline,         activeIcon: Icons.person,           label: isAr ? 'حسابي'     : 'Profile',       index: 4, current: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
-                        _NavItem(icon: Icons.settings_outlined,      activeIcon: Icons.settings,         label: isAr ? 'الإعدادات' : 'Settings',      index: 5, current: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
+                        _NavItem(icon: Icons.home_outlined,          activeIcon: Icons.home,             label: isAr ? 'الرئيسية'  : 'Home',     index: 0, current: _currentIndex, dark: dark, onTap: (i) => setState(() => _currentIndex = i)),
+                        _NavItem(icon: Icons.folder_outlined,        activeIcon: Icons.folder,           label: isAr ? 'بلاغاتي'   : 'Reports',  index: 1, current: _currentIndex, dark: dark, onTap: (i) => setState(() => _currentIndex = i)),
+                        _NavItem(icon: Icons.notifications_outlined, activeIcon: Icons.notifications,    label: isAr ? 'الإشعارات' : 'Alerts',   index: 2, current: _currentIndex, dark: dark, badge: _unreadCount, onTap: (i) { setState(() { _currentIndex = i; _unreadCount = 0; }); }),
+                        _NavItem(icon: Icons.emoji_events_outlined,  activeIcon: Icons.emoji_events,     label: isAr ? 'الإنجازات' : 'Badges',   index: 3, current: _currentIndex, dark: dark, onTap: (i) => setState(() => _currentIndex = i)),
+                        _NavItem(icon: Icons.person_outline,         activeIcon: Icons.person,           label: isAr ? 'حسابي'     : 'Profile',  index: 4, current: _currentIndex, dark: dark, onTap: (i) => setState(() => _currentIndex = i)),
+                        _NavItem(icon: Icons.settings_outlined,      activeIcon: Icons.settings,         label: isAr ? 'الإعدادات' : 'Settings', index: 5, current: _currentIndex, dark: dark, onTap: (i) => setState(() => _currentIndex = i)),
                       ],
                     ),
                   ),
@@ -97,13 +113,16 @@ class _NavItem extends StatelessWidget {
   final String label;
   final int index, current;
   final int badge;
+  final bool dark;
   final ValueChanged<int> onTap;
   const _NavItem({required this.icon, required this.activeIcon, required this.label,
-      required this.index, required this.current, required this.onTap, this.badge = 0});
+      required this.index, required this.current, required this.onTap,
+      this.badge = 0, this.dark = false});
 
   @override
   Widget build(BuildContext context) {
     final isActive = index == current;
+    final inactiveColor = dark ? Colors.white38 : Colors.grey.shade400;
     return Expanded(
       child: GestureDetector(
         onTap: () => onTap(index),
@@ -111,7 +130,7 @@ class _NavItem extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Stack(children: [
             Icon(isActive ? activeIcon : icon,
-                color: isActive ? kRed : Colors.white38, size: 22),
+                color: isActive ? kRed : inactiveColor, size: 22),
             if (badge > 0)
               Positioned(
                 top: 0, right: 0,
@@ -125,7 +144,7 @@ class _NavItem extends StatelessWidget {
           ]),
           const SizedBox(height: 3),
           Text(label, style: TextStyle(fontSize: 9,
-              color: isActive ? kRed : Colors.white38,
+              color: isActive ? kRed : inactiveColor,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w400)),
         ]),
       ),

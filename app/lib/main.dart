@@ -86,7 +86,7 @@ class MyApp extends StatelessWidget {
             ),
             scaffoldBackgroundColor: kBg,
             appBarTheme: const AppBarTheme(
-              backgroundColor: kDark,
+              backgroundColor: kBlue,
               foregroundColor: Colors.white,
               centerTitle: true,
               elevation: 0,
