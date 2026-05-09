@@ -20,9 +20,6 @@ class _SignupPageState extends State<SignupPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _red   = Color(0xFFCC0000);
-  static const _redLight = Color(0xFF185FA5);
-
   Future<void> _signup() async {
     final isAr = appLocale.value.languageCode == 'ar';
     if (_nameController.text.trim().isEmpty ||
@@ -208,7 +205,7 @@ class _RoleCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFFCC0000).withOpacity(0.05) : Colors.white,
+        color: selected ? const Color(0xFFCC0000).withValues(alpha: 0.05) : Colors.white,
         border: Border.all(color: selected ? const Color(0xFFCC0000) : Colors.grey.shade300, width: 1.5),
         borderRadius: BorderRadius.circular(10),
       ),

@@ -21,10 +21,6 @@ class TrackPageState extends State<TrackPage> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  static const _red   = Color(0xFFCC0000);
-  static const _redLight = Color(0xFF185FA5);
-  static const _dark = Color(0xFF1A1A2E);
-
   Future<void> _trackProblem() async {
     final lang = appLocale.value.languageCode;
     if (_codeController.text.trim().isEmpty) return;
@@ -80,7 +76,7 @@ class TrackPageState extends State<TrackPage> {
       body: Column(children: [
         // Search header
         Container(
-          color: kDark,
+          color: kBlue,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           child: Row(children: [
             Expanded(

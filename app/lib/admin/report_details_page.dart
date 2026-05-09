@@ -166,8 +166,8 @@ class _ReportDetailsPageState extends State<ReportDetailsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: sc.withOpacity(0.3)),
+                  color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: sc.withValues(alpha: 0.3)),
                 ),
                 child: Text(_statusLabel(problem.status, lang),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: sc)),

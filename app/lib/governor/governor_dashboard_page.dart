@@ -119,7 +119,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
           Text(isAr ? 'لوحة رئيس الحي' : 'Governor Dashboard',
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
           if (_district != null)
-            Text(_district!, style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7))),
+            Text(_district!, style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.7))),
         ]),
         centerTitle: true,
         actions: [
@@ -155,16 +155,16 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? kRed : Colors.white.withOpacity(0.1),
+                        color: isSelected ? kRed : Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: isSelected ? kRed : Colors.white.withOpacity(0.2)),
+                            color: isSelected ? kRed : Colors.white.withValues(alpha: 0.2)),
                       ),
                       child: Text('${_filterLabel(f)} ($count)',
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7))),
+                              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7))),
                     ),
                   ),
                 );
@@ -226,12 +226,12 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                       border: pingCount > 0 && status != 'resolved'
                                           ? Border.all(color: Colors.orange.shade300, width: 1.5)
                                           : Border.all(color: Colors.grey.shade100),
-                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
                                     ),
                                     child: Row(children: [
                                       Container(
                                         width: 44, height: 44,
-                                        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                                         child: Icon(Icons.report_problem_outlined, color: color, size: 22),
                                       ),
                                       const SizedBox(width: 12),
@@ -242,7 +242,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                         Row(children: [
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                             child: Text(_filterLabel(status),
                                                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
                                           ),
@@ -250,7 +250,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                           if (hasFixPhoto)
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(color: kRed.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                               child: Text(isAr ? '📷 صورة الإصلاح' : '📷 Fix Photo',
                                                   style: const TextStyle(fontSize: 10, color: kRed, fontWeight: FontWeight.w600)),
                                             ),
@@ -258,7 +258,7 @@ class _GovernorDashboardPageState extends State<GovernorDashboardPage> {
                                             const SizedBox(width: 6),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                               child: Text('🔔 $pingCount ${isAr ? 'تنبيه' : 'ping${pingCount > 1 ? 's' : ''}'}',
                                                   style: const TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.w600)),
                                             ),

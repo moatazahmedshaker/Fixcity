@@ -169,14 +169,19 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             child: Row(children: [
-              Container(
-                width: 30, height: 30,
-                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
-                child: const Icon(Icons.location_pin, color: Colors.white, size: 17),
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Container(
+                    width: 30, height: 30,
+                    decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
+                    child: const Icon(Icons.location_pin, color: Colors.white, size: 17),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Fix', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
+                  Text('City', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.6))),
+                ]),
               ),
-              const SizedBox(width: 8),
-              const Text('Fix', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
-              Text('City', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.6))),
               const Spacer(),
               if (_currentPage < _pages.length - 1)
                 TextButton(
@@ -200,10 +205,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       ),
 
       // Dots + button
-      SafeArea(
-        top: false,
-        child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      Padding(
+        padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(context).viewPadding.bottom + 20),
         child: Column(children: [
           Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(_pages.length, (i) {
             final active = i == _currentPage;
@@ -218,25 +221,24 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             );
           })),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity, height: 52,
-            child: ElevatedButton(
-              onPressed: _next,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kRed, foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-              ),
-              child: Text(
-                _currentPage == _pages.length - 1
-                    ? (isAr ? 'ابدأ الآن' : 'Get Started')
-                    : (isAr ? 'التالي' : 'Next'),
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-              ),
+          ElevatedButton(
+            onPressed: _next,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kRed, foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 54),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: Text(
+              _currentPage == _pages.length - 1
+                  ? (isAr ? 'ابدأ الآن' : 'Get Started')
+                  : (isAr ? 'التالي' : 'Next'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
           ),
         ]),
-      )),
+      ),
     ]);
   }
 }

@@ -15,9 +15,13 @@ class MyReportsPage extends StatefulWidget {
 
 class _MyReportsPageState extends State<MyReportsPage> {
   final _supabase = Supabase.instance.client;
+  late Future<List<Map<String, dynamic>>> _reportsFuture;
 
-  static const _red   = Color(0xFFCC0000);
-  static const _dark  = Color(0xFF1A1A2E);
+  @override
+  void initState() {
+    super.initState();
+    _reportsFuture = _fetchMyReports();
+  }
 
   Future<List<Map<String, dynamic>>> _fetchMyReports() async {
     final user = _supabase.auth.currentUser;
@@ -184,7 +188,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchMyReports(),
+        future: _reportsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const _MyReportsSkeleton();
@@ -197,7 +201,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   style: TextStyle(color: Colors.grey.shade500)),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => setState(() {}),
+                onPressed: () => setState(() { _reportsFuture = _fetchMyReports(); }),
                 child: Text(isAr ? 'حاول مجدداً' : 'Try again',
                     style: const TextStyle(color: kRed)),
               ),
@@ -211,7 +215,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
             color: kRed,
             onRefresh: () async => setState(() {}),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
               itemCount: reports.length,
               itemBuilder: (context, index) {
                 final data    = reports[index];

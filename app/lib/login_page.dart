@@ -178,24 +178,27 @@ class FixHeroPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(children: [
-            Container(
-              width: 44, height: 44,
-              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.location_pin, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 12),
-            RichText(text: TextSpan(
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-              children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
-            )),
-          ]),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.location_pin, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              RichText(text: TextSpan(
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
+                children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
+              )),
+            ]),
+          ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: kRed.withOpacity(0.2),
-                border: Border.all(color: kBlue.withOpacity(0.4)),
+                color: kRed.withValues(alpha: 0.2),
+                border: Border.all(color: kBlue.withValues(alpha: 0.4)),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -251,18 +254,21 @@ class FixMobileLogo extends StatelessWidget {
     if (MediaQuery.of(context).size.width > 700) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
-      child: Row(children: [
-        Container(
-          width: 38, height: 38,
-          decoration: BoxDecoration(color: const Color(0xFFCC0000), borderRadius: BorderRadius.circular(9)),
-          child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
-        ),
-        const SizedBox(width: 10),
-        RichText(text: const TextSpan(
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
-          children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFFCC0000)))],
-        )),
-      ]),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(children: [
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(color: const Color(0xFFCC0000), borderRadius: BorderRadius.circular(9)),
+            child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          RichText(text: const TextSpan(
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+            children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFFCC0000)))],
+          )),
+        ]),
+      ),
     );
   }
 }

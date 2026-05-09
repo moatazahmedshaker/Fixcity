@@ -143,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
           : user == null
               ? _GuestView(isAr: isAr, icon: Icons.person_outline, titleAr: 'حسابي', titleEn: 'My Profile', subtitleAr: 'سجّل دخول للوصول إلى حسابك الشخصي', subtitleEn: 'Login to access your account')
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
                   child: Column(children: [
                     // Avatar
                     Container(
@@ -163,7 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                      decoration: BoxDecoration(color: kRed.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: kRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
                       child: Text(
                         '⭐ ${_profile?['points'] ?? 0} ${isAr ? 'نقطة' : 'Points'}',
                         style: const TextStyle(fontSize: 13, color: kRed, fontWeight: FontWeight.w700),
@@ -302,7 +302,7 @@ class _GuestView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(40, 40, 40, 100),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(width: 96, height: 96,
-              decoration: BoxDecoration(color: kRed.withOpacity(0.08), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: kRed.withValues(alpha: 0.08), shape: BoxShape.circle),
               child: Icon(icon, size: 48, color: kRed)),
           const SizedBox(height: 24),
           Text(isAr ? titleAr : titleEn, textAlign: TextAlign.center,

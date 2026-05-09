@@ -139,7 +139,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5)),
               const SizedBox(height: 4),
               Text('Municipal Staff Portal',
-                  style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.5))),
+                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.5))),
               const SizedBox(height: 40),
 
               // Card
@@ -147,7 +147,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 30, offset: const Offset(0, 10))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 10))],
                 ),
                 padding: const EdgeInsets.all(28),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

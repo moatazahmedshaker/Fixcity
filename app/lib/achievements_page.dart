@@ -68,7 +68,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
           : _isGuest
               ? _GuestView(isAr: isAr, icon: Icons.emoji_events_outlined, titleAr: 'الإنجازات', titleEn: 'Achievements', subtitleAr: 'سجّل دخول لتجمع النقاط وتفتح الأوسمة', subtitleEn: 'Login to earn points and unlock badges')
               : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
               child: Column(children: [
                 // Points card
                 Container(

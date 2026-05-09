@@ -31,14 +31,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _displayPending  = 0;
   late AnimationController _counterCtrl;
 
-  static const _red      = Color(0xFFCC0000);
-  static const _redLight = Color(0xFF185FA5);
-  static const _dark       = Color(0xFF1A1A2E);
-
   @override
   void initState() {
     super.initState();
     _counterCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _counterCtrl.addListener(() {
+      if (mounted) {
+        setState(() {
+          _displayTotal    = (_counterCtrl.value * _totalReports).round();
+          _displayResolved = (_counterCtrl.value * _resolvedReports).round();
+          _displayPending  = (_counterCtrl.value * _pendingReports).round();
+        });
+      }
+    });
     _user = _supabase.auth.currentUser;
     _supabase.auth.onAuthStateChange.listen((data) {
       if (mounted) setState(() => _user = data.session?.user);
@@ -91,15 +96,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
       // Animate counters from 0 to actual values
       _counterCtrl.forward(from: 0);
-      _counterCtrl.addListener(() {
-        if (mounted) {
-          setState(() {
-            _displayTotal    = (_counterCtrl.value * total).round();
-            _displayResolved = (_counterCtrl.value * resolved).round();
-            _displayPending  = (_counterCtrl.value * pending).round();
-          });
-        }
-      });
     } catch (_) {
       if (mounted) setState(() => _statsLoading = false);
     }
@@ -158,16 +154,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Row(children: [
-                        Container(
-                          width: 36, height: 36,
-                          decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
-                          child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Container(
+                              width: 36, height: 36,
+                              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            RichText(text: TextSpan(
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+                              children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
+                            )),
+                          ]),
                         ),
-                        const SizedBox(width: 10),
-                        RichText(text: TextSpan(
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
-                          children: [const TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: kBlue))],
-                        )),
                         const Spacer(),
                         _TopBarBtn(label: t('switch_lang', lang: lang), onTap: _toggleLang),
                         const SizedBox(width: 8),
@@ -193,7 +194,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
 
@@ -375,7 +376,7 @@ class _CategoryGrid extends StatelessWidget {
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Container(
                   width: 48, height: 48,
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: Icon(icon, color: color, size: 24),
                 ),
                 const SizedBox(height: 8),
@@ -448,7 +449,7 @@ class _CategoryBreakdown extends StatelessWidget {
           child: Row(children: [
             Container(
               width: 36, height: 36,
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 18),
             ),
             const SizedBox(width: 12),
@@ -497,9 +498,9 @@ class _TopBarBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: icon != null
             ? Icon(icon, color: Colors.white, size: 18)
@@ -526,7 +527,7 @@ class _GreetingCard extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 44, height: 44,
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
           child: const Icon(Icons.person, color: Colors.white, size: 22),
         ),
         const SizedBox(width: 12),
@@ -566,7 +567,7 @@ class _ActionCard extends StatelessWidget {
             Stack(children: [
               Container(
                 width: 52, height: 52,
-                decoration: BoxDecoration(color: iconBg.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(color: iconBg.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
                 child: Icon(icon, color: iconBg, size: 26),
               ),
               if (badge != null)

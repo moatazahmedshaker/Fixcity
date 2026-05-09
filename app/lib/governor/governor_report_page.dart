@@ -180,9 +180,9 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _statusColor(problem.status).withOpacity(0.1),
+                  color: _statusColor(problem.status).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _statusColor(problem.status).withOpacity(0.3)),
+                  border: Border.all(color: _statusColor(problem.status).withValues(alpha: 0.3)),
                 ),
                 child: Text(_statusLabel(problem.status),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _statusColor(problem.status))),
@@ -298,7 +298,7 @@ class _GovernorReportPageState extends State<GovernorReportPage> {
                               bottom: 8, right: 8,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), shape: BoxShape.circle),
                                 child: const Icon(Icons.edit, color: Colors.white, size: 16),
                               ),
                             ),

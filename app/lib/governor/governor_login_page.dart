@@ -103,7 +103,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                 child: Column(children: [
                   Container(
                     width: 80, height: 80,
-                    decoration: BoxDecoration(color: kRed.withOpacity(0.2), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: kRed.withValues(alpha: 0.2), shape: BoxShape.circle),
                     child: const Icon(Icons.location_city_outlined, color: kRed, size: 40),
                   ),
                   const SizedBox(height: 20),
@@ -112,7 +112,7 @@ class _GovernorLoginPageState extends State<GovernorLoginPage> {
                   const SizedBox(height: 8),
                   Text(isAr ? 'تسجيل الدخول لإدارة بلاغات حيّك' : 'Login to manage your district reports',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.6))),
+                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.6))),
                 ]),
               ),
 

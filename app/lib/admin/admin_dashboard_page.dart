@@ -101,24 +101,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         backgroundColor: kDark,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Row(children: [
-          Container(
-            width: 30, height: 30,
-            decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
-            child: const Icon(Icons.location_pin, color: Colors.white, size: 16),
-          ),
-          const SizedBox(width: 8),
-          RichText(text: const TextSpan(
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-            children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFF185FA5)))],
-          )),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-            child: const Text('Admin', style: TextStyle(fontSize: 11, color: Colors.white70)),
-          ),
-        ]),
+        title: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Row(children: [
+            Container(
+              width: 30, height: 30,
+              decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(7)),
+              child: const Icon(Icons.location_pin, color: Colors.white, size: 16),
+            ),
+            const SizedBox(width: 8),
+            RichText(text: const TextSpan(
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+              children: [TextSpan(text: 'Fix'), TextSpan(text: 'City', style: TextStyle(color: Color(0xFF185FA5)))],
+            )),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+              child: const Text('Admin', style: TextStyle(fontSize: 11, color: Colors.white70)),
+            ),
+          ]),
+        ),
         actions: [
           // Pending badge
           if (pending > 0)
@@ -211,7 +214,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               leading: Container(
                                 width: 44, height: 44,
-                                decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                decoration: BoxDecoration(color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                                 child: Icon(Icons.report_problem_outlined, color: sc, size: 22),
                               ),
                               title: Text(problem.title,
@@ -221,7 +224,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 Row(children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(color: sc.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                                    decoration: BoxDecoration(color: sc.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
                                     child: Text(_statusLabel(problem.status),
                                         style: TextStyle(fontSize: 10, color: sc, fontWeight: FontWeight.w600)),
                                   ),
@@ -273,13 +276,13 @@ class _StatChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+          color: selected ? color.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: selected ? color.withOpacity(0.5) : Colors.transparent),
+          border: Border.all(color: selected ? color.withValues(alpha: 0.5) : Colors.transparent),
         ),
         child: Column(children: [
           Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: color)),
-          Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.7))),
+          Text(label, style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7))),
         ]),
       ),
     );

@@ -1,6 +1,5 @@
 import 'theme.dart';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -70,9 +69,6 @@ class ReportPageState extends State<ReportPage> {
   final _descriptionController = TextEditingController();
   final _mapController = MapController();
 
-  static const _red      = Color(0xFFCC0000);
-  static const _redLight = Color(0xFF185FA5);
-  static const _dark       = Color(0xFF1A1A2E);
   static const _geminiKey  = 'AIzaSyBbEvjMFSuIzk3uuy7ZO0kWBFjZIOtKT34';
 
   final List<String> _categories = ['cat_pothole', 'cat_trash', 'cat_lighting', 'cat_sewage', 'cat_water', 'cat_other'];
@@ -290,35 +286,6 @@ Respond with ONLY the category key. Example: cat_pothole
 
   // ── SMS confirmation ──────────────────────────────────────────────────────
 
-  Future<void> _sendSMSConfirmation(String phone, String reportCode, String lang) async {
-    final isAr = lang == 'ar';
-    final message = isAr
-        ? 'FixCity: تم تقديم بلاغك بنجاح!\n'
-          'كود البلاغ: $reportCode\n'
-          'الفئة: ${t(_selectedCategory!, lang: lang)}\n'
-          'الحي: ${_selectedDistrict!.nameAr}\n'
-          'الحالة: قيد الانتظار\n'
-          'احتفظ بهذا الكود لمتابعة بلاغك.'
-        : 'FixCity: Your report was submitted!\n'
-          'Report Code: $reportCode\n'
-          'Category: ${t(_selectedCategory!, lang: lang)}\n'
-          'District: ${_selectedDistrict!.nameEn}\n'
-          'Status: Pending\n'
-          'Keep this code to track your report.';
-
-    try {
-      final cleaned   = phone.replaceAll(RegExp(r'[^0-9]'), '');
-      final formatted = cleaned.startsWith('0') ? '+2$cleaned' : '+$cleaned';
-      final encoded   = Uri.encodeComponent(message);
-      // sms: URI scheme opens the native SMS app pre-filled
-      final url = Uri.parse('sms:$formatted?body=$encoded');
-  
-    } catch (e) {
-      debugPrint('SMS failed: \$e');
-    }
-  }
-
-
   // ── Submit ────────────────────────────────────────────────────────────────
 
   Future<void> _submitReport() async {
@@ -488,7 +455,7 @@ Respond with ONLY the category key. Example: cat_pothole
             Container(
               width: 64, height: 64,
               decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
-              child: const Icon(Icons.check_circle_outline, color: kRed, size: 36),
+              child: const Icon(Icons.check_circle_outline, color: Color(0xFF388E3C), size: 36),
             ),
             const SizedBox(height: 16),
             Text(isAr ? 'تم الإرسال بنجاح!' : 'Report Submitted!',
@@ -708,9 +675,6 @@ class _DistrictDropdown extends StatelessWidget {
   final bool isAr;
   final ValueChanged<District> onSelect;
   const _DistrictDropdown({required this.selected, required this.isAr, required this.onSelect});
-
-  static const _red   = Color(0xFFCC0000);
-  static const _dark  = Color(0xFF1A1A2E);
 
   void _showPicker(BuildContext context) {
     showModalBottomSheet(

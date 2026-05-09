@@ -11,6 +11,13 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   final _supabase = Supabase.instance.client;
+  late Future<List<Map<String, dynamic>>> _notifsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifsFuture = _fetchNotifications();
+  }
 
   Future<List<Map<String, dynamic>>> _fetchNotifications() async {
     final user = _supabase.auth.currentUser;
@@ -42,7 +49,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       body: user == null
           ? _GuestView(isAr: isAr, icon: Icons.notifications_outlined, titleAr: 'الإشعارات', titleEn: 'Notifications', subtitleAr: 'سجّل دخول لاستقبال إشعارات بلاغاتك', subtitleEn: 'Login to receive updates on your reports')
           : FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchNotifications(),
+              future: _notifsFuture,
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: kRed));
@@ -57,7 +64,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ]));
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                   itemCount: notifs.length,
                   itemBuilder: (context, i) {
                     final n    = notifs[i];
