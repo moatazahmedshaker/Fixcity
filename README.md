@@ -1,153 +1,124 @@
-# FixCity — منصة البلاغات البلدية
+# FixCity — Unified Civic Reporting Platform
 
-A cross-platform civic reporting app built with Flutter and Supabase. Citizens can report infrastructure problems (potholes, trash, lighting, sewage, water, etc.), track their reports in real time, and receive status updates — all in Arabic or English.
+> A cross-platform application that lets Egyptian citizens report non-emergency street and infrastructure problems directly to municipal authorities — with real-time status tracking.
 
-Developed as a graduation project at **Badr University in Cairo**.
-
----
-
-## Features
-
-### Citizen App
-- **Submit reports** — pick a category, write a description, attach a photo, and pin the location on an interactive map
-- **Track reports** — look up any report by its unique code and follow status updates live
-- **My Reports** — logged-in users see a full history of their own submissions
-- **Achievements** — points and badges for active reporters
-- **Bilingual UI** — full Arabic (RTL) and English support, switchable at runtime
-- **Push-style notifications** — in-app notification center for report status changes
-
-### Admin Dashboard
-- Secure admin login (separate from citizen accounts)
-- View, filter, and search all submitted reports
-- Update report status (Pending → In Progress → Resolved)
-- Leave notes and status-update history per report
-
-### Governor Dashboard
-- Governor-level login with a separate portal
-- Overview of reports grouped by district/category
-- Drill down into individual report details
+**Graduation project · Badr University in Cairo · 2025–2026**
+**Accepted into Google's Gemini for Graduation Projects program.**
 
 ---
 
-## Tech Stack
+## What it does
+
+Citizens can open the app, drop a pin on a map, upload a photo, and submit a report in under a minute. Each report gets a unique tracking code. Authorities manage everything from a web admin dashboard — viewing, filtering, assigning, and updating report statuses in one place.
+
+**Google Gemini AI** automatically classifies incoming reports by category, reducing manual triage work for municipal staff.
+
+---
+
+## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Flutter / Dart (iOS, Android, Web) |
-| Backend & DB | Supabase (PostgreSQL + Auth + Storage) |
-| Maps | flutter\_map (OpenStreetMap — zero API cost) |
-| Geolocation | geolocator |
-| Image upload | image\_picker + Supabase Storage |
-| Localisation | flutter\_localizations + intl |
+| Mobile + Web frontend | Flutter / Dart (single codebase) |
+| Backend & database | Supabase (PostgreSQL) |
+| Geospatial queries | PostGIS |
+| Mapping | Flutter Map (Leaflet — no API costs) |
+| File storage | Supabase Storage |
+| AI classification | Google Gemini AI |
+| Auth | Supabase Auth |
 
 ---
 
-## Project Structure
+## Key features
 
-```
-app/
-└── lib/
-    ├── main.dart                  # App entry, routing, Supabase init
-    ├── main_scaffold.dart         # Bottom nav scaffold
-    ├── theme.dart                 # Shared colours & constants
-    ├── translations.dart          # AR/EN string map
-    ├── home_page.dart             # Home feed with stats & quick-launch
-    ├── report_page.dart           # Submit a new report
-    ├── track_page.dart            # Track a report by code
-    ├── my_reports_page.dart       # User's own reports list
-    ├── profile_page.dart          # Account info & settings
-    ├── settings_page.dart         # Language, account, about
-    ├── notifications_page.dart    # In-app notifications
-    ├── achievements_page.dart     # Points & badges
-    ├── login_page.dart            # Auth — login
-    ├── signup_page.dart           # Auth — register
-    ├── splash_page.dart           # Onboarding + language picker
-    ├── admin/
-    │   ├── admin_login_page.dart
-    │   ├── admin_dashboard_page.dart
-    │   └── report_details_page.dart
-    └── governor/
-        ├── governor_login_page.dart
-        ├── governor_dashboard_page.dart
-        └── governor_report_page.dart
-```
+- **Geolocation** — interactive map pinpointing with PostGIS-backed precision
+- **Photo evidence** — anonymous upload to Supabase Storage
+- **Public tracking** — unique report code lets citizens follow their submission
+- **Admin dashboard** — web panel for authorities to view, filter, assign, and update reports
+- **AI triage** — Gemini AI classifies report type automatically on submission
+- **User accounts** — optional sign-up to view personal report history
 
 ---
 
-## Getting Started
+## Architecture
+
+```
+Flutter App (Mobile + Web)
+        │
+        ▼
+  Supabase Client
+        │
+   ┌────┴────┐
+   │         │
+PostgreSQL  Supabase     Gemini AI
++ PostGIS   Storage      (classification)
+```
+
+The app and admin dashboard share a single Flutter codebase. Row-level security (RLS) is enabled on all tables. The admin route is accessible only to authenticated users with an admin role.
+
+---
+
+## Running locally
 
 ### Prerequisites
-
-- Flutter SDK `>=3.0.0`
-- Dart SDK (bundled with Flutter)
+- Flutter SDK ≥ 3.0.0
 - Git
-- A Supabase project (or use the existing one — see below)
+- A Supabase project ([supabase.com](https://supabase.com))
 
-### Clone & install
+### Setup
 
 ```bash
-git clone https://github.com/moatazahmedshaker/Fixcity.git
-cd Fixcity/app
+git clone https://github.com/DoctorJhin/Fixcity.git
+cd Fixcity/app/fixcity
 flutter pub get
 ```
 
-### Supabase configuration
-
-The app is already wired to a live Supabase project. If you want to use your own, open [app/lib/main.dart](app/lib/main.dart) and replace the two constants at the top:
+Open `lib/main.dart` and add your Supabase credentials:
 
 ```dart
-const supabaseUrl     = 'YOUR_PROJECT_URL';
-const supabaseAnonKey = 'YOUR_ANON_KEY';
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
 ```
-
-Your Supabase project needs the following:
-
-**Tables** (public schema, RLS enabled)
-
-| Table | Key columns |
-|---|---|
-| `reports` | `id`, `report_code`, `user_id`, `category`, `description`, `status`, `lat`, `lng`, `address`, `photo_url`, `created_at` |
-| `status_updates` | `id`, `report_id`, `status`, `note`, `created_at` |
-| `profiles` | `id` (= auth user id), `full_name`, `phone`, `points`, `sms_enabled` |
-| `notifications` | `id`, `user_id`, `message`, `is_read`, `created_at` |
-
-**Storage bucket:** `reports_bucket` (public read, authenticated write)
-
-**RLS policies:** allow `INSERT` and `SELECT` for `anon` and `authenticated` on `reports`; `SELECT` for both on `status_updates`; `SELECT` + `UPDATE` for `authenticated` on `profiles`.
 
 ### Run
 
 ```bash
-# Mobile (with a device/emulator connected)
+# Mobile
 flutter run
 
-# Web
+# Web admin panel
 flutter run -d chrome
-
-# Specific platform
-flutter run -d android
-flutter run -d ios
+# Then navigate to http://localhost:[port]/#/admin
 ```
 
-To access the Admin Dashboard on web, navigate to `http://localhost:<port>/#/admin` after launching.
+---
+
+## Supabase configuration checklist
+
+**Database tables** (public schema, RLS enabled):
+- `reports` — report_code, photo_url, latitude, longitude, user_id, category, status
+- `status_updates` — report_id (FK), status, updated_at
+
+**Storage:**
+- Bucket: `reports_bucket`
+
+**RLS policies:**
+- `reports` → INSERT + SELECT for `anon` and `authenticated`
+- `status_updates` → SELECT for `anon` and `authenticated`
+- `reports_bucket` → INSERT + SELECT for `anon` and `authenticated`
 
 ---
 
-## Team
+## Developer notes
 
-| Name | Role |
-|---|---|
-| Ahmed Wael Ali | Developer |
-| Moataz Ahmed Shaker | Developer |
-| Shehab Elamir | Developer |
-| Mohamed Salaheldin | Developer |
-| Mohamed Ahmed Abdelsalam | Developer |
-| George Armia | Developer |
-
-**Institution:** Badr University in Cairo
+- All geospatial data is stored and queried via PostGIS — location precision is maintained throughout the stack
+- Gemini AI output is validated before writing to the database to prevent misclassification from polluting reports
+- The admin dashboard is Flutter Web — no separate frontend codebase needed
 
 ---
 
-## License
+## Credits
 
-All rights reserved © 2025–2026 FixCity Team, Badr University in Cairo.
+**Developer:** Ahmed Wael Ali ([github.com/DoctorJhin](https://github.com/DoctorJhin))
+**Institution:** Badr University in Cairo — Business Information Systems
+**License:** MIT
