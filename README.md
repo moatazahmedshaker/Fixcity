@@ -1,98 +1,153 @@
-Fixcity: منصة البلاغات الموحدة (Unified Reporting Platform)
-Project Overview:
-Fixcity is a cross-platform application (Mobile App and Web Dashboard) designed to empower Egyptian citizens to report non-emergency street and infrastructure problems directly to municipal authorities. This project was developed as a graduation requirement and serves as a proof-of-concept for enhancing civic engagement and local governance efficiency.
+# FixCity — منصة البلاغات البلدية
 
-Key Features
-Geolocation: Users can pinpoint the exact location of the issue using an interactive map.
-Photo Evidence: Users can upload photos to verify the problem.
-Public Tracking: Citizens can track the real-time status of their report using a unique tracking code.
-Admin Dashboard (Web): Authorities can view, filter, assign, and update the status of all incoming reports in a single interface.
-Authentication: Users can sign up and view a history of their submitted reports.
+A cross-platform civic reporting app built with Flutter and Supabase. Citizens can report infrastructure problems (potholes, trash, lighting, sewage, water, etc.), track their reports in real time, and receive status updates — all in Arabic or English.
 
-Technical Stack
-This project is built on a modern, cross-platform architecture utilizing a free, scalable backend.
-Component, Technology, Description
-Frontend, Flutter/Dart, "Single codebase for the native iOS, Android, and Web Admin Panel."
-Backend/DB, Supabase (PostgreSQL), "Secure, open-source alternative to Firebase, used for Database (Postgres), Authentication, and File Storage."
-Mapping, Flutter Map (Leaflet), Open-source mapping solution to ensure zero API costs.
-File Storage, Supabase Storage, "Handles anonymous user photo uploads (e.g., potholes, trash)."
+Developed as a graduation project at **Badr University in Cairo**.
 
-Getting Started (Setup for Developers)
+---
 
-To run and contribute to this project locally, follow these steps:
+## Features
 
-1. Prerequisites
+### Citizen App
+- **Submit reports** — pick a category, write a description, attach a photo, and pin the location on an interactive map
+- **Track reports** — look up any report by its unique code and follow status updates live
+- **My Reports** — logged-in users see a full history of their own submissions
+- **Achievements** — points and badges for active reporters
+- **Bilingual UI** — full Arabic (RTL) and English support, switchable at runtime
+- **Push-style notifications** — in-app notification center for report status changes
 
-You must have the following installed on your development machine:
-Flutter SDK (>=3.0.0)
-Git
-Node.js / npm (required for the Firebase/Supabase CLI)
+### Admin Dashboard
+- Secure admin login (separate from citizen accounts)
+- View, filter, and search all submitted reports
+- Update report status (Pending → In Progress → Resolved)
+- Leave notes and status-update history per report
 
-2. Clone the Repository
+### Governor Dashboard
+- Governor-level login with a separate portal
+- Overview of reports grouped by district/category
+- Drill down into individual report details
 
-Copy and Paste these, one by one, into your terminal:
-git clone (https://github.com/moatazahmedshaker/Fixcity.git
-cd fixcity/app/fixcity
+---
 
-3. Install Dependencies
+## Tech Stack
 
-Navigate to the project root (fixcity/app/fixcity) and install the packages:
+| Layer | Technology |
+|---|---|
+| Frontend | Flutter / Dart (iOS, Android, Web) |
+| Backend & DB | Supabase (PostgreSQL + Auth + Storage) |
+| Maps | flutter\_map (OpenStreetMap — zero API cost) |
+| Geolocation | geolocator |
+| Image upload | image\_picker + Supabase Storage |
+| Localisation | flutter\_localizations + intl |
 
-Terminal:
+---
+
+## Project Structure
+
+```
+app/
+└── lib/
+    ├── main.dart                  # App entry, routing, Supabase init
+    ├── main_scaffold.dart         # Bottom nav scaffold
+    ├── theme.dart                 # Shared colours & constants
+    ├── translations.dart          # AR/EN string map
+    ├── home_page.dart             # Home feed with stats & quick-launch
+    ├── report_page.dart           # Submit a new report
+    ├── track_page.dart            # Track a report by code
+    ├── my_reports_page.dart       # User's own reports list
+    ├── profile_page.dart          # Account info & settings
+    ├── settings_page.dart         # Language, account, about
+    ├── notifications_page.dart    # In-app notifications
+    ├── achievements_page.dart     # Points & badges
+    ├── login_page.dart            # Auth — login
+    ├── signup_page.dart           # Auth — register
+    ├── splash_page.dart           # Onboarding + language picker
+    ├── admin/
+    │   ├── admin_login_page.dart
+    │   ├── admin_dashboard_page.dart
+    │   └── report_details_page.dart
+    └── governor/
+        ├── governor_login_page.dart
+        ├── governor_dashboard_page.dart
+        └── governor_report_page.dart
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK `>=3.0.0`
+- Dart SDK (bundled with Flutter)
+- Git
+- A Supabase project (or use the existing one — see below)
+
+### Clone & install
+
+```bash
+git clone https://github.com/moatazahmedshaker/Fixcity.git
+cd Fixcity/app
 flutter pub get
+```
 
-4. Configure Supabase Connection
+### Supabase configuration
 
-You must have a Supabase project created.
+The app is already wired to a live Supabase project. If you want to use your own, open [app/lib/main.dart](app/lib/main.dart) and replace the two constants at the top:
 
-Go to the Supabase Dashboard -> Settings -> API.
+```dart
+const supabaseUrl     = 'YOUR_PROJECT_URL';
+const supabaseAnonKey = 'YOUR_ANON_KEY';
+```
 
-Copy your Project URL and Anon Public Key.
+Your Supabase project needs the following:
 
-Open lib/main.dart and paste the values into the constants:
+**Tables** (public schema, RLS enabled)
 
-const supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL_HERE'; 
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_PUBLIC_KEY_HERE';
+| Table | Key columns |
+|---|---|
+| `reports` | `id`, `report_code`, `user_id`, `category`, `description`, `status`, `lat`, `lng`, `address`, `photo_url`, `created_at` |
+| `status_updates` | `id`, `report_id`, `status`, `note`, `created_at` |
+| `profiles` | `id` (= auth user id), `full_name`, `phone`, `points`, `sms_enabled` |
+| `notifications` | `id`, `user_id`, `message`, `is_read`, `created_at` |
 
-For the sake of this project, it's linked to my Supabase Dashboard.
+**Storage bucket:** `reports_bucket` (public read, authenticated write)
 
-5. Run the Application
+**RLS policies:** allow `INSERT` and `SELECT` for `anon` and `authenticated` on `reports`; `SELECT` for both on `status_updates`; `SELECT` + `UPDATE` for `authenticated` on `profiles`.
 
-Mobile App:
-Terminal:
+### Run
+
+```bash
+# Mobile (with a device/emulator connected)
 flutter run
 
-Web Admin Panel:
-Terminal:
+# Web
 flutter run -d chrome
 
-To Access Admin Dashboard: Navigate to http://localhost:[port]/#/admin in your browser.
+# Specific platform
+flutter run -d android
+flutter run -d ios
+```
 
-🔒 Supabase Configuration Checklist
+To access the Admin Dashboard on web, navigate to `http://localhost:<port>/#/admin` after launching.
 
-For the app to run correctly, you must configure these settings in your Supabase Dashboard:
+---
 
-Database Tables: Ensure the following tables exist in the public schema with RLS enabled:
+## Team
 
-reports (Includes columns for report_code, photo_url, latitude, longitude, user_id, etc.)
-status_updates (Includes report_id linking to the reports table)
+| Name | Role |
+|---|---|
+| Ahmed Wael Ali | Developer |
+| Moataz Ahmed Shaker | Developer |
+| Shehab Elamir | Developer |
+| Mohamed Salaheldin | Developer |
+| Mohamed Ahmed Abdelsalam | Developer |
+| George Armia | Developer |
 
-Storage: Create a bucket named reports_bucket.
+**Institution:** Badr University in Cairo
 
-Security Policies (RLS):
+---
 
-Reports Table (reports): Policies must allow INSERT and SELECT for both anon (anonymous) and authenticated roles.
-Status Updates Table (status_updates): Policies must allow SELECT for both anon and authenticated roles.
-Storage Bucket (reports_bucket): Policies must allow INSERT and SELECT for anon and authenticated roles.
+## License
 
-✍️ Contribution and Licensing
-
-Project Lead/Developer: Ahmed Wael Ali / Moataz Ahmed Shaker - 
-
-Institution: Badr University in Cairo
-
-Contribution
-All contributions must be made via Feature Branches and Pull Requests to the main branch.
-
-License
-[PLACE HOLDER]
+All rights reserved © 2025–2026 FixCity Team, Badr University in Cairo.

@@ -1,0 +1,9 @@
+# Large video files (exceed GitHub 100MB limit)
+storage/Screen_Recording_20260508_231603.mp4
+
+# Flutter build outputs
+app/build/
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
